@@ -1113,6 +1113,13 @@ body {
 </div>
 
 <script>
+(function() {
+  const correct = "GoBulls#!";
+  const entered = prompt("🔒 Enter password to access GraphicStudio:");
+  if (entered !== correct) {
+    document.documentElement.innerHTML = "<div style='background:#0e0e11;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;color:#ff4f6a;font-size:20px;'>Access Denied</div>";
+  }
+})();
 let activeView = 'library';
 
 function showView(name, tabEl) {
