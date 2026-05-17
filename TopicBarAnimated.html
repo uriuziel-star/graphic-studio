@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFL Spotlight – Topic Bar (Animated)</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,700;1,800;1,900&family=Barlow:wght@400;600;700&family=Anton&family=Bebas+Neue&family=Oswald:ital,wght@0,700;1,700&family=Russo+One&family=Teko:wght@700&family=Rajdhani:wght@700&family=Exo+2:ital,wght@0,800;1,800&family=Chakra+Petch:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --body-font: 'Barlow', sans-serif;
+  --header-font: 'Barlow Condensed', sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #0d0d0d;
+  font-family: var(--body-font);
+  display: flex; flex-direction: column; align-items: center;
+  min-height: 100vh; padding: 30px 20px; gap: 18px; color: #ccc;
+}
+
+/* ── EDITOR ── */
+.editor-ui {
+  width: 100%; max-width: 900px;
+  background: #1e1e1e; border: 1px solid #333; border-radius: 10px;
+  padding: 18px 22px; font-size: 13px;
+}
+.editor-ui h2 {
+  color: #fff; font-size: 14px; font-weight: 700; margin-bottom: 14px;
+  letter-spacing: .05em; text-transform: uppercase;
+  border-bottom: 1px solid #333; padding-bottom: 9px;
+}
+.section-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .12em; color: #555; margin-bottom: 10px;
+}
+.layer-block {
+  background: #242424; border: 1px solid #2e2e2e;
+  border-radius: 6px; padding: 12px 14px; margin-bottom: 10px;
+}
+.layer-block-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: #555; margin-bottom: 10px;
+}
+.lbl { font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:#666; display:block; margin-bottom:4px; }
+input[type="text"], select {
+  background:#1e1e1e; border:1px solid #3a3a3a; color:#ddd;
+  padding:6px 9px; border-radius:4px; font-family:var(--body-font);
+  font-size:12px; width:100%; margin-bottom:8px;
+}
+input[type="text"]:focus, select:focus { outline:none; border-color:#0085CA; }
+select option { background:#1e1e1e; }
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+.col { display:flex; flex-direction:column; }
+.size-row { display:flex; align-items:center; gap:6px; margin-top:4px; }
+.size-row input[type="range"] { flex:1; accent-color:#0085CA; cursor:pointer; }
+.style-toggles { display:flex; gap:6px; margin-top:6px; }
+.tog {
+  background:#2a2a2a; border:1px solid #3a3a3a; color:#888;
+  padding:4px 12px; border-radius:4px; font-size:13px; cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s; user-select:none; line-height:1.4;
+}
+.tog.active { background:#0085CA; border-color:#0085CA; color:#fff; }
+.tog-b { font-weight:900; }
+.tog-i { font-style:italic; font-weight:700; }
+.hex-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
+.hex-row input[type="color"] {
+  width:36px; height:30px; padding:2px; border:1px solid #3a3a3a;
+  border-radius:4px; background:#1e1e1e; cursor:pointer; margin-bottom:0;
+}
+.hex-row input[type="text"] { width:90px; margin-bottom:0; font-family:monospace; letter-spacing:.05em; }
+.hex-swatch { width:30px; height:30px; border-radius:4px; border:1px solid #3a3a3a; flex-shrink:0; }
+input[type="file"] {
+  background:#1e1e1e; border:1px solid #3a3a3a; color:#aaa;
+  padding:5px 8px; border-radius:4px; font-size:11px; width:100%; cursor:pointer;
+}
+.logo-preview {
+  width:60px; height:60px; border-radius:4px; border:1px dashed #3a3a3a;
+  background:#1a1a1a; display:flex; align-items:center; justify-content:center;
+  color:#555; font-size:10px; overflow:hidden; flex-shrink:0;
+}
+.logo-preview img { width:100%; height:100%; object-fit:contain; }
+
+/* mode toggle */
+.mode-toggle { display:flex; gap:6px; margin-bottom:12px; }
+.mode-btn {
+  background:#2a2a2a; border:1px solid #3a3a3a; color:#888;
+  padding:5px 14px; border-radius:4px; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.08em; cursor:pointer;
+  transition:background .15s,color .15s; font-family:var(--body-font);
+}
+.mode-btn.active { background:#0085CA; border-color:#0085CA; color:#fff; }
+
+.update-btn {
+  margin-top:14px; background:#0085CA; color:white; border:none;
+  padding:9px 22px; border-radius:5px; font-family:var(--header-font);
+  font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  cursor:pointer; transition:background .2s;
+}
+.update-btn:hover { background:#006fa8; }
+.download-btn {
+  margin-top:14px; margin-left:10px; background:#1a7a3a; color:white; border:none;
+  padding:9px 22px; border-radius:5px; font-family:var(--header-font);
+  font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  cursor:pointer; transition:background .2s; display:inline-flex; align-items:center; gap:6px;
+}
+.download-btn:hover { background:#145e2c; }
+.download-btn:disabled { background:#444; cursor:not-allowed; opacity:.7; }
+
+/* ── BAR GRAPHIC ── */
+.bar-preview-wrap {
+  width: 960px;
+  position: relative;
+  /* checkerboard to show transparency */
+  background-image: repeating-conic-gradient(#222 0% 25%, #181818 0% 50%);
+  background-size: 20px 20px;
+  border-radius: 6px;
+  overflow: visible; /* allow right logo to bleed above/below */
+  box-shadow: 0 10px 40px rgba(0,0,0,.6);
+}
+
+/* The actual bar: 1920x290px rendered at 960px wide (50%) */
+#bar-graphic {
+  width: 1920px;
+  height: 290px;
+  transform: scale(0.5);
+  transform-origin: top left;
+  position: relative;
+  overflow: visible; /* allow right logo bleed */
+}
+/* scaler div so wrapper gets correct height */
+.bar-scaler {
+  width: 960px;
+  height: 145px; /* 290 * 0.5 */
+  overflow: visible; /* allow right logo to bleed above the bar */
+  position: relative;
+}
+
+/* right logo slot can bleed above/below — height & top controlled by JS */
+#logo-right-slot {
+  overflow: visible;
+  /* JS sets height and top offset for bleed */
+}
+
+/* bar background — the silvery bar from PSD */
+.bar-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    #f0f0f0 0%,
+    #e0e0e0 8%,
+    #c8c8c8 18%,
+    #d8d8d8 28%,
+    #f2f2f2 48%,
+    #e4e4e4 62%,
+    #cccccc 76%,
+    #bfbfbf 88%,
+    #d0d0d0 100%
+  );
+}
+/* top accent line */
+.bar-bg::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:8px;
+  background: linear-gradient(180deg, #555 0%, #888 40%, #444 100%);
+}
+/* bottom accent line */
+.bar-bg::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:8px;
+  background: linear-gradient(180deg, #444 0%, #888 60%, #555 100%);
+}
+
+.bar-content {
+  position: absolute; inset: 0;
+  display: flex; align-items: center;
+}
+
+/* logo slots */
+.logo-slot {
+  width: 220px; height: 274px;
+  flex-shrink: 0;
+  overflow: visible;
+  position: relative;
+}
+.logo-slot img {
+  object-fit: contain;
+  position: absolute;
+  /* JS sets top/left/width/height/filter */
+}
+.logo-slot-placeholder {
+  width: 140px; height: 140px;
+  border: 3px dashed rgba(0,0,0,0.2);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--header-font);
+  font-size: 22px; font-weight: 700;
+  color: rgba(0,0,0,0.25);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* text area */
+.bar-text-area {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 0 10px;
+  min-width: 0;
+}
+
+/* ── ANIMATION ── */
+
+/* The bar is split into two halves that wipe from center outward */
+/* Left half clips from right edge inward → expands left */
+/* Right half clips from left edge inward → expands right */
+.bar-half {
+  position: absolute;
+  top: 0; height: 100%;
+  overflow: hidden;
+  /* clip starts at zero width, expands to half the bar */
+}
+.bar-half-left {
+  right: 50%; left: 0;
+  transform-origin: right center;
+  transform: scaleX(0);
+}
+.bar-half-right {
+  left: 50%; right: 0;
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+/* The inner div mirrors the full-width bar so both halves show the correct portion */
+.bar-half-inner {
+  position: absolute;
+  top: 0; height: 100%;
+  width: 1920px; /* always full bar width */
+}
+.bar-half-left .bar-half-inner  { right: 0; }
+.bar-half-right .bar-half-inner { left: 0; }
+
+/* content fades in after bar expands */
+.bar-content-anim {
+  opacity: 0;
+}
+
+/* accent lines — grow from center outward */
+.bar-bg-anim::before,
+.bar-bg-anim::after {
+  transform: scaleX(0);
+  transform-origin: center;
+}
+
+/* Animation keyframes */
+@keyframes wipeFromCenter {
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+@keyframes fadeIn {
+  0%   { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes accentGrow {
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* playing state — triggered by JS adding .playing to #bar-graphic */
+#bar-graphic.playing .bar-half-left {
+  animation: wipeFromCenter 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+#bar-graphic.playing .bar-half-right {
+  animation: wipeFromCenter 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+#bar-graphic.playing .bar-bg-anim::before,
+#bar-graphic.playing .bar-bg-anim::after {
+  animation: accentGrow 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+#bar-graphic.playing .bar-content-anim {
+  animation: fadeIn 0.45s ease forwards;
+  animation-delay: 0.45s;
+}
+
+/* ── ANIMATION CONTROLS ── */
+.anim-controls {
+  width: 100%; max-width: 900px;
+  background: #1e1e1e; border: 1px solid #333; border-radius: 10px;
+  padding: 14px 18px;
+  display: flex; align-items: center; gap: 14px;
+}
+.anim-controls h3 {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: #555; flex-shrink: 0;
+}
+.play-btn {
+  background: #0085CA; color: white; border: none;
+  padding: 8px 20px; border-radius: 5px;
+  font-family: var(--body-font); font-size: 13px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 7px;
+  transition: background .2s; flex-shrink: 0;
+}
+.play-btn:hover { background: #006fa8; }
+.record-btn {
+  background: #8b0000; color: white; border: none;
+  padding: 8px 20px; border-radius: 5px;
+  font-family: var(--body-font); font-size: 13px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 7px;
+  transition: background .2s; flex-shrink: 0;
+}
+.record-btn:hover { background: #6b0000; }
+.record-btn:disabled { background: #444; cursor: not-allowed; opacity: .6; }
+.anim-param {
+  display: flex; align-items: center; gap: 7px; flex: 1;
+}
+.anim-param .lbl { margin: 0; white-space: nowrap; }
+.anim-param input[type="range"] { flex: 1; accent-color: #0085CA; }
+.anim-status {
+  font-size: 11px; color: #555; font-family: monospace; flex-shrink: 0;
+}
+</style>
+
+</head>
+<body>
+
+<!-- EDITOR -->
+<div class="editor-ui">
+  <h2>📺 Topic Bar Editor — Animated</h2>
+
+  <!-- Mode -->
+  <div class="layer-block">
+    <div class="layer-block-title">Display Mode</div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-two" onclick="setMode('two')">Two Lines</button>
+      <button class="mode-btn" id="mode-one" onclick="setMode('one')">One Line</button>
+    </div>
+  </div>
+
+  <!-- Text -->
+  <div class="layer-block" id="two-line-editor">
+    <div class="layer-block-title">Layer 1 · Two-Line Text</div>
+    <div class="g2">
+      <div class="col">
+        <span class="lbl">Top Line</span>
+        <input type="text" id="inp-top" value="Special thanks to Aaron Brewer!" oninput="document.getElementById('bar-top-line').textContent=this.value">
+        <span class="lbl">Font</span>
+        <select id="font-top" onchange="applyTextStyle()">
+          <option value="'Barlow Condensed',sans-serif" selected>Barlow Condensed</option>
+          <option value="'Anton',sans-serif">Anton</option>
+          <option value="'Bebas Neue',sans-serif">Bebas Neue</option>
+          <option value="'Oswald',sans-serif">Oswald</option>
+          <option value="'Russo One',sans-serif">Russo One</option>
+          <option value="'Teko',sans-serif">Teko</option>
+          <option value="'Rajdhani',sans-serif">Rajdhani</option>
+          <option value="'Exo 2',sans-serif">Exo 2</option>
+          <option value="'Chakra Petch',sans-serif">Chakra Petch</option>
+          <option value="'Helvetica Neue',Helvetica,Arial,sans-serif">Helvetica Neue</option>
+        </select>
+        <span class="lbl">Size — <span id="sv-top">72</span>px</span>
+        <div class="size-row">
+          <input type="range" min="28" max="120" value="72" id="size-top"
+            oninput="document.getElementById('sv-top').textContent=this.value;applyTextStyle()">
+        </div>
+        <div class="style-toggles">
+          <button class="tog tog-b active" id="tog-b-top" onclick="toggleTxt('top','bold')"><b>B</b></button>
+          <button class="tog tog-i" id="tog-i-top" onclick="toggleTxt('top','italic')"><i>I</i></button>
+        </div>
+        <span class="lbl" style="margin-top:8px;">Color</span>
+        <div class="hex-row">
+          <input type="color" id="color-top-pick" value="#111111" oninput="syncTxtColor('top',this.value)">
+          <input type="text" id="color-top-hex" value="#111111" maxlength="7" oninput="syncTxtColorText('top',this.value)">
+          <div class="hex-swatch" id="swatch-top" style="background:#111111;"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;margin-bottom:4px;">
+          <input type="checkbox" id="shadow-top-on" checked style="width:auto;margin:0;accent-color:#0085CA;cursor:pointer;" onchange="applyTextShadow()">
+          <label for="shadow-top-on" style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#666;cursor:pointer;margin:0;">Drop Shadow</label>
+        </div>
+        <span class="lbl">Intensity — <span id="sv-shadow-top">55</span>%</span>
+        <div class="size-row">
+          <input type="range" min="0" max="100" value="55" id="size-shadow-top"
+            oninput="document.getElementById('sv-shadow-top').textContent=this.value;applyTextShadow()">
+        </div>
+      </div>
+      <div class="col">
+        <span class="lbl">Bottom Line</span>
+        <input type="text" id="inp-bottom" value="(Dolphins All-Pro Center)" oninput="document.getElementById('bar-bottom-line').textContent=this.value">
+        <span class="lbl">Font</span>
+        <select id="font-bottom" onchange="applyTextStyle()">
+          <option value="'Barlow Condensed',sans-serif" selected>Barlow Condensed</option>
+          <option value="'Anton',sans-serif">Anton</option>
+          <option value="'Bebas Neue',sans-serif">Bebas Neue</option>
+          <option value="'Oswald',sans-serif">Oswald</option>
+          <option value="'Russo One',sans-serif">Russo One</option>
+          <option value="'Teko',sans-serif">Teko</option>
+          <option value="'Rajdhani',sans-serif">Rajdhani</option>
+          <option value="'Exo 2',sans-serif">Exo 2</option>
+          <option value="'Chakra Petch',sans-serif">Chakra Petch</option>
+          <option value="'Helvetica Neue',Helvetica,Arial,sans-serif">Helvetica Neue</option>
+        </select>
+        <span class="lbl">Size — <span id="sv-bottom">68</span>px</span>
+        <div class="size-row">
+          <input type="range" min="28" max="120" value="68" id="size-bottom"
+            oninput="document.getElementById('sv-bottom').textContent=this.value;applyTextStyle()">
+        </div>
+        <div class="style-toggles">
+          <button class="tog tog-b active" id="tog-b-bottom" onclick="toggleTxt('bottom','bold')"><b>B</b></button>
+          <button class="tog tog-i active" id="tog-i-bottom" onclick="toggleTxt('bottom','italic')"><i>I</i></button>
+        </div>
+        <span class="lbl" style="margin-top:8px;">Color</span>
+        <div class="hex-row">
+          <input type="color" id="color-bottom-pick" value="#111111" oninput="syncTxtColor('bottom',this.value)">
+          <input type="text" id="color-bottom-hex" value="#111111" maxlength="7" oninput="syncTxtColorText('bottom',this.value)">
+          <div class="hex-swatch" id="swatch-bottom" style="background:#111111;"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;margin-bottom:4px;">
+          <input type="checkbox" id="shadow-bottom-on" checked style="width:auto;margin:0;accent-color:#0085CA;cursor:pointer;" onchange="applyTextShadow()">
+          <label for="shadow-bottom-on" style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#666;cursor:pointer;margin:0;">Drop Shadow</label>
+        </div>
+        <span class="lbl">Intensity — <span id="sv-shadow-bottom">55</span>%</span>
+        <div class="size-row">
+          <input type="range" min="0" max="100" value="55" id="size-shadow-bottom"
+            oninput="document.getElementById('sv-shadow-bottom').textContent=this.value;applyTextShadow()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer-block" id="one-line-editor" style="display:none;">
+    <div class="layer-block-title">Layer 1 · One-Line Text</div>
+    <span class="lbl">Text</span>
+    <input type="text" id="inp-one" value="Dolphins OT Patrick Paul" oninput="document.getElementById('bar-one-line').textContent=this.value">
+    <div class="g3" style="align-items:end;">
+      <div class="col">
+        <span class="lbl">Font</span>
+        <select id="font-one" onchange="applyTextStyle()">
+          <option value="'Barlow Condensed',sans-serif" selected>Barlow Condensed</option>
+          <option value="'Anton',sans-serif">Anton</option>
+          <option value="'Bebas Neue',sans-serif">Bebas Neue</option>
+          <option value="'Oswald',sans-serif">Oswald</option>
+          <option value="'Russo One',sans-serif">Russo One</option>
+          <option value="'Teko',sans-serif">Teko</option>
+          <option value="'Rajdhani',sans-serif">Rajdhani</option>
+          <option value="'Exo 2',sans-serif">Exo 2</option>
+          <option value="'Chakra Petch',sans-serif">Chakra Petch</option>
+          <option value="'Helvetica Neue',Helvetica,Arial,sans-serif">Helvetica Neue</option>
+        </select>
+      </div>
+      <div class="col">
+        <span class="lbl">Size — <span id="sv-one">88</span>px</span>
+        <div class="size-row">
+          <input type="range" min="28" max="140" value="88" id="size-one"
+            oninput="document.getElementById('sv-one').textContent=this.value;applyTextStyle()">
+        </div>
+      </div>
+      <div class="col">
+        <span class="lbl">Style</span>
+        <div class="style-toggles">
+          <button class="tog tog-b active" id="tog-b-one" onclick="toggleTxt('one','bold')"><b>B</b></button>
+          <button class="tog tog-i" id="tog-i-one" onclick="toggleTxt('one','italic')"><i>I</i></button>
+        </div>
+      </div>
+    </div>
+    <span class="lbl" style="margin-top:8px;">Color</span>
+    <div class="hex-row">
+      <input type="color" id="color-one-pick" value="#111111" oninput="syncTxtColor('one',this.value)">
+      <input type="text" id="color-one-hex" value="#111111" maxlength="7" oninput="syncTxtColorText('one',this.value)">
+      <div class="hex-swatch" id="swatch-one" style="background:#111111;"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;margin-bottom:4px;">
+      <input type="checkbox" id="shadow-one-on" checked style="width:auto;margin:0;accent-color:#0085CA;cursor:pointer;" onchange="applyTextShadow()">
+      <label for="shadow-one-on" style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#666;cursor:pointer;margin:0;">Drop Shadow</label>
+    </div>
+    <span class="lbl">Intensity — <span id="sv-shadow-one">55</span>%</span>
+    <div class="size-row">
+      <input type="range" min="0" max="100" value="55" id="size-shadow-one"
+        oninput="document.getElementById('sv-shadow-one').textContent=this.value;applyTextShadow()">
+    </div>
+  </div>
+
+  <!-- Logos -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 2 · Logos</div>
+    <div class="g2">
+      <div>
+        <span class="lbl">Left Logo (PNG/SVG)</span>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
+          <div class="logo-preview" id="logo-left-preview"><span>LEFT</span></div>
+          <input type="file" accept="image/*" onchange="loadLogo('left',this)" style="flex:1;">
+        </div>
+        <button class="tog" onclick="clearLogo('left')" style="font-size:10px;padding:3px 10px;">Clear</button>
+        <span class="lbl" style="margin-top:10px;">Size — <span id="sv-logo-left-size">100</span>%</span>
+        <div class="size-row">
+          <input type="range" min="20" max="200" value="100" id="size-logo-left"
+            oninput="document.getElementById('sv-logo-left-size').textContent=this.value;applyLogoSize('left')">
+        </div>
+        <span class="lbl" style="margin-top:6px;">Bleed Height — <span id="sv-logo-left-bleed">100</span>%</span>
+        <div class="size-row" style="margin-bottom:2px;">
+          <input type="range" min="100" max="600" value="100" id="bleed-logo-left"
+            oninput="document.getElementById('sv-logo-left-bleed').textContent=this.value;applyLeftBleed()">
+        </div>
+        <div style="font-size:9px;color:#555;margin-bottom:6px;letter-spacing:.04em;">100% = bar height only. Increase to let image extend above/below.</div>
+        <span class="lbl">Vertical Offset — <span id="sv-logo-left-offset">50</span>%</span>
+        <div class="size-row">
+          <input type="range" min="0" max="100" value="50" id="offset-logo-left"
+            oninput="document.getElementById('sv-logo-left-offset').textContent=this.value;applyLeftBleed()">
+        </div>
+        <span class="lbl" style="margin-top:6px;">X Position — <span id="sv-logo-left-x">50</span>%</span>
+        <div class="size-row">
+          <input type="range" min="0" max="100" value="50" id="pos-logo-left-x"
+            oninput="document.getElementById('sv-logo-left-x').textContent=this.value;logoState.left.x=parseInt(this.value);applyLogoSize('left')">
+        </div>
+        <span class="lbl" style="margin-top:6px;">Y Position — <span id="sv-logo-left-y">50</span>%</span>
+        <div class="size-row">
+          <input type="range" min="0" max="100" value="50" id="pos-logo-left-y"
+            oninput="document.getElementById('sv-logo-left-y').textContent=this.value;logoState.left.y=parseInt(this.value);applyLogoSize('left')">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;margin-bottom:4px;">
+          <input type="checkbox" id="logo-left-shadow" checked style="width:auto;margin:0;accent-color:#0085CA;cursor:pointer;" onchange="applyLogoShadow('left')">
+          <label for="logo-left-shadow" style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#666;cursor:pointer;margin:0;">Drop Shadow</label>
+        </div>
+        <span class="lbl">Intensity — <span id="sv-logo-left-shadow">60</span>%</span>
+        <div class="size-row">
+          <input type="range" min="0" max="100" value="60" id="size-logo-left-shadow"
+            oninput="document.getElementById('sv-logo-left-shadow').textContent=this.value;applyLogoShadow('left')">
+        </div>
+      </div>
+      <div>
+        <span class="lbl">Right Logo (PNG/SVG)</span>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
+          <div class="logo-preview" id="logo-right-preview"><span>RIGHT</span></div>
+          <input type="file" accept="image/*" onchange="loadLogo('right',this)" style="flex:1;">
+        </div>
+        <button class="tog" onclick="clearLogo('right')" style="font-size:10px;padding:3px 10px;">Clear</button>
+        <span class="lbl" style="margin-top:10px;">Size — <span id="sv-logo-right-size">100</span>%</span>
+        <div class="size-row">
+          <input type="range" min="20" max="200" value="100" id="size-logo-right"
+            oninput="document.getElementById('sv-logo-right-size').textContent=this.value;applyLogoSize('right')">
+        </div>
+        <span class="lbl" style="margin-top:6px;">Bleed Height — <span id="sv-logo-right-bleed">100</span>%</span>
+        <div class="size-row" style="margin-bottom:2px;">
+          <input type="range" min="100" max="600" value="100" id="bleed-logo-right"
+            oninput="document.getElementById('sv-logo-right-bleed').textContent=this.value;applyRightBleed()">
+        </div>
+        <div style="font-size:9px;color:#555;margin-bottom:6px;letter-spacing:.04em;">100% = bar height only. Increase to let image extend above/below.</div>
+        <span class="lbl">Vertical Offset — <span id="sv-logo-right-offset">50</span>%</span>
+        <div class="size-row">
+          <input type="range" min="0" max="100" value="50" id="offset-logo-right"
+            oninput="document.getElementById('sv-logo-right-offset').textContent=this.value;applyRightBleed()">
+        </div>
+        <span class="lbl" style="margin-top:6px;">X Position — <span id="sv-logo-right-x">50</span>%</span>
+        <div class="size-row">
+          <input type="range" min="0" max="100" value="50" id="pos-logo-right-x"
+            oninput="document.getElementById('sv-logo-right-x').textContent=this.value;logoState.right.x=parseInt(this.value);applyLogoSize('right')">
+        </div>
+        <span class="lbl" style="margin-top:6px;">Y Position — <span id="sv-logo-right-y">50</span>%</span>
+        <div class="size-row">
+          <input type="range" min="0" max="100" value="50" id="pos-logo-right-y"
+            oninput="document.getElementById('sv-logo-right-y').textContent=this.value;logoState.right.y=parseInt(this.value);applyLogoSize('right')">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;margin-bottom:4px;">
+          <input type="checkbox" id="logo-right-shadow" checked style="width:auto;margin:0;accent-color:#0085CA;cursor:pointer;" onchange="applyLogoShadow('right')">
+          <label for="logo-right-shadow" style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#666;cursor:pointer;margin:0;">Drop Shadow</label>
+        </div>
+        <span class="lbl">Intensity — <span id="sv-logo-right-shadow">60</span>%</span>
+        <div class="size-row">
+          <input type="range" min="0" max="100" value="60" id="size-logo-right-shadow"
+            oninput="document.getElementById('sv-logo-right-shadow').textContent=this.value;applyLogoShadow('right')">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bar color -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 3 · Bar Style</div>
+    <div class="g2">
+      <div>
+        <span class="lbl">Bar Style</span>
+        <select id="bar-style-select" onchange="applyBarStyle(this.value)">
+          <option value="silver">Silver (default)</option>
+          <option value="dark">Dark / Charcoal</option>
+          <option value="white">White</option>
+          <option value="custom">Custom color</option>
+        </select>
+      </div>
+      <div id="custom-color-wrap" style="display:none;">
+        <span class="lbl">Custom Color</span>
+        <div class="hex-row">
+          <input type="color" id="bar-color-pick" value="#cccccc" oninput="applyCustomBarColor(this.value)">
+          <input type="text" id="bar-color-hex" value="#cccccc" maxlength="7">
+          <div class="hex-swatch" id="bar-color-swatch" style="background:#cccccc;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="update-btn" onclick="updateBar()">▶ Update Bar</button>
+  <button class="download-btn" id="download-btn" onclick="downloadBar()">⬇ Download WebP (1920×1080, alpha)</button>
+</div>
+
+<!-- ANIMATION CONTROLS -->
+<div class="anim-controls">
+  <h3>▶ Animation</h3>
+  <button class="play-btn" onclick="playAnimation()">
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="white"><polygon points="2,1 11,6 2,11"/></svg>
+    Play
+  </button>
+  <div class="anim-param">
+    <span class="lbl">Speed — <span id="sv-anim-speed">100</span>%</span>
+    <input type="range" min="20" max="300" value="100" id="anim-speed"
+      oninput="document.getElementById('sv-anim-speed').textContent=this.value">
+  </div>
+  <div class="anim-param">
+    <span class="lbl">Hold — <span id="sv-anim-hold">2.5</span>s</span>
+    <input type="range" min="0.5" max="8" step="0.5" value="2.5" id="anim-hold"
+      oninput="document.getElementById('sv-anim-hold').textContent=this.value">
+  </div>
+  <button class="record-btn" id="record-btn" onclick="recordAnimation()">
+    ⏺ Record WebM
+  </button>
+  <span class="anim-status" id="anim-status">Ready</span>
+</div>
+
+<!-- PREVIEW -->
+<div class="bar-preview-wrap">
+  <div class="bar-scaler">
+    <div id="bar-graphic">
+      <!-- Left half wipes from center to left -->
+      <div class="bar-half bar-half-left">
+        <div class="bar-half-inner">
+          <div class="bar-bg bar-bg-anim" id="bar-bg-el-left"></div>
+        </div>
+      </div>
+      <!-- Right half wipes from center to right -->
+      <div class="bar-half bar-half-right">
+        <div class="bar-half-inner">
+          <div class="bar-bg bar-bg-anim" id="bar-bg-el"></div>
+        </div>
+      </div>
+      <!-- Content fades in after bar expands -->
+      <div class="bar-content bar-content-anim">
+        <div class="logo-slot" id="logo-left-slot">
+          <div class="logo-slot-placeholder">LOGO</div>
+        </div>
+        <div class="bar-text-area">
+          <div id="bar-top-line"
+            style="font-family:'Barlow Condensed',sans-serif;font-size:72px;font-weight:900;color:#111;">
+            Special thanks to Aaron Brewer!
+          </div>
+          <div id="bar-bottom-line"
+            style="font-family:'Barlow Condensed',sans-serif;font-size:68px;font-weight:900;font-style:italic;color:#111;">
+            (Dolphins All-Pro Center)
+          </div>
+          <div id="bar-one-line"
+            style="font-family:'Barlow Condensed',sans-serif;font-size:88px;font-weight:900;color:#111;display:none;">
+            Dolphins OT Patrick Paul
+          </div>
+        </div>
+        <div class="logo-slot" id="logo-right-slot">
+          <div class="logo-slot-placeholder">LOGO</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="font-size:11px;color:#444;text-align:center;">
+  Preview shown at 50% scale. Download exports at full 1920×290px with transparent PNG background.
+</div>
+
+<script>
+// ── state ──
+const txtState = {
+  top:    { bold:true,  italic:false },
+  bottom: { bold:true,  italic:true  },
+  one:    { bold:true,  italic:false },
+};
+let currentMode = 'two';
+
+// logo position/size state (x/y = 0-100%, 50=center)
+const logoState = {
+  left:  { x:50, y:50 },
+  right: { x:50, y:50 },
+};
+
+// ── mode ──
+function setMode(m) {
+  currentMode = m;
+  document.getElementById('mode-two').classList.toggle('active', m === 'two');
+  document.getElementById('mode-one').classList.toggle('active', m === 'one');
+  document.getElementById('two-line-editor').style.display = m === 'two' ? 'block' : 'none';
+  document.getElementById('one-line-editor').style.display = m === 'one' ? 'block' : 'none';
+  document.getElementById('bar-top-line').style.display    = m === 'two' ? 'block' : 'none';
+  document.getElementById('bar-bottom-line').style.display = m === 'two' ? 'block' : 'none';
+  document.getElementById('bar-one-line').style.display    = m === 'one' ? 'block' : 'none';
+}
+
+// ── text updates ──
+function applyTextStyle() {
+  const tl = document.getElementById('bar-top-line');
+  const bl = document.getElementById('bar-bottom-line');
+  const ol = document.getElementById('bar-one-line');
+
+  tl.style.fontFamily  = document.getElementById('font-top').value;
+  tl.style.fontSize    = document.getElementById('size-top').value + 'px';
+  tl.style.fontWeight  = txtState.top.bold   ? '900' : '400';
+  tl.style.fontStyle   = txtState.top.italic ? 'italic' : 'normal';
+
+  bl.style.fontFamily  = document.getElementById('font-bottom').value;
+  bl.style.fontSize    = document.getElementById('size-bottom').value + 'px';
+  bl.style.fontWeight  = txtState.bottom.bold   ? '900' : '400';
+  bl.style.fontStyle   = txtState.bottom.italic ? 'italic' : 'normal';
+
+  ol.style.fontFamily  = document.getElementById('font-one').value;
+  ol.style.fontSize    = document.getElementById('size-one').value + 'px';
+  ol.style.fontWeight  = txtState.one.bold   ? '900' : '400';
+  ol.style.fontStyle   = txtState.one.italic ? 'italic' : 'normal';
+}
+
+function toggleTxt(key, prop) {
+  txtState[key][prop] = !txtState[key][prop];
+  document.getElementById('tog-' + prop[0] + '-' + key).classList.toggle('active', txtState[key][prop]);
+  applyTextStyle();
+}
+
+// ── shadow helpers ──
+function makeTxtShadow(intensity) {
+  if (intensity <= 0) return 'none';
+  const hi = (intensity / 100 * 0.45).toFixed(3);   // white highlight opacity
+  const dk = (intensity / 100 * 0.7).toFixed(3);    // dark drop opacity
+  const bl = Math.round(intensity / 100 * 18);       // blur radius
+  return `2px 2px 0px rgba(255,255,255,${hi}), 3px 4px ${bl}px rgba(0,0,0,${dk}), 0px 2px ${Math.round(bl*1.5)}px rgba(0,0,0,${(dk*0.6).toFixed(3)})`;
+}
+
+function applyTextShadow() {
+  const keys = ['top','bottom','one'];
+  const elMap = { top:'bar-top-line', bottom:'bar-bottom-line', one:'bar-one-line' };
+  keys.forEach(k => {
+    const on  = document.getElementById('shadow-' + k + '-on');
+    const slider = document.getElementById('size-shadow-' + k);
+    if (!on || !slider) return;
+    const intensity = on.checked ? parseInt(slider.value) : 0;
+    document.getElementById(elMap[k]).style.textShadow = makeTxtShadow(intensity);
+  });
+}
+
+function makeLogoShadow(intensity) {
+  if (intensity <= 0) return 'none';
+  const op  = (intensity / 100 * 0.75).toFixed(3);
+  const blur = Math.round(intensity / 100 * 20);
+  const off  = Math.round(intensity / 100 * 6);
+  return `drop-shadow(${off}px ${off}px ${blur}px rgba(0,0,0,${op}))`;
+}
+
+function getLogoImgStyle(side) {
+  const sizePct  = parseInt(document.getElementById('size-logo-' + side).value) / 100;
+  const maxW     = Math.round(200 * sizePct);
+  const maxH     = Math.round(220 * sizePct);
+  const on       = document.getElementById('logo-' + side + '-shadow');
+  const slider   = document.getElementById('size-logo-' + side + '-shadow');
+  const intensity = on.checked ? parseInt(slider.value) : 0;
+  const shadow   = makeLogoShadow(intensity);
+
+  // Slot is 220×274px. Position the img centre at (x%,y%) within the slot.
+  // We don't know the img rendered size until it's in the DOM, so use CSS transform trick:
+  // place the top-left at (x%, y%) then shift back by 50% of img size via transform.
+  const xPct = logoState[side].x;
+  const yPct = logoState[side].y;
+
+  return `max-width:${maxW}px;max-height:${maxH}px;object-fit:contain;` +
+         `position:absolute;` +
+         `left:${xPct}%;top:${yPct}%;` +
+         `transform:translate(-50%,-50%);` +
+         `filter:${shadow};`;
+}
+
+// ── logo bleed (extend above/below bar) ──
+// Bar is 290px tall. Bleed% = new slot height as % of 290px.
+// Vertical offset 0%=top, 50%=centered on bar, 100%=bottom-aligned.
+function applyBleed(side) {
+  const BAR_H    = 290;
+  const bleedPct = parseInt(document.getElementById('bleed-logo-' + side).value) / 100;
+  const offsetPct= parseInt(document.getElementById('offset-logo-' + side).value) / 100;
+  const newH     = Math.round(BAR_H * bleedPct);
+  // top: position slot so it vertically aligns with bar. 
+  // At offset 0%: slot top = 0 (slot extends below bar baseline).
+  // At offset 50%: slot centered on bar.
+  // At offset 100%: slot bottom = bar bottom.
+  const topPx = Math.round((BAR_H - newH) * offsetPct);
+  const slot  = document.getElementById('logo-' + side + '-slot');
+  slot.style.height = newH + 'px';
+  slot.style.top    = topPx + 'px';
+  slot.style.position = 'relative';
+  // Re-apply image style since slot dimensions changed
+  applyLogoSize(side);
+}
+function applyRightBleed() { applyBleed('right'); }
+function applyLeftBleed()  { applyBleed('left');  }
+
+function applyLogoSize(side) {
+  const slot = document.getElementById('logo-' + side + '-slot');
+  const img  = slot.querySelector('img');
+  if (!img) return;
+  img.style.cssText = getLogoImgStyle(side);
+}
+
+function applyLogoShadow(side) {
+  const slot = document.getElementById('logo-' + side + '-slot');
+  const img  = slot.querySelector('img');
+  if (!img) return;
+  img.style.cssText = getLogoImgStyle(side);
+}
+
+function isValidHex(h) { return /^#[0-9A-Fa-f]{6}$/.test(h); }
+
+function syncTxtColor(key, hex) {
+  document.getElementById('color-' + key + '-hex').value = hex;
+  document.getElementById('swatch-' + key).style.background = hex;
+  const elMap = { top:'bar-top-line', bottom:'bar-bottom-line', one:'bar-one-line' };
+  document.getElementById(elMap[key]).style.color = hex;
+}
+function syncTxtColorText(key, val) {
+  if (val.length > 0 && val[0] !== '#') val = '#' + val;
+  if (isValidHex(val)) {
+    document.getElementById('color-' + key + '-pick').value = val;
+    syncTxtColor(key, val);
+  }
+}
+
+// ── update bar text ──
+function updateBar() {
+  document.getElementById('bar-top-line').textContent    = document.getElementById('inp-top').value;
+  document.getElementById('bar-bottom-line').textContent = document.getElementById('inp-bottom').value;
+  document.getElementById('bar-one-line').textContent    = document.getElementById('inp-one').value;
+}
+
+// ── logos ──
+function loadLogo(side, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const slot    = document.getElementById('logo-' + side + '-slot');
+  const preview = document.getElementById('logo-' + side + '-preview');
+  // Reset position, bleed and offset to defaults
+  logoState[side].x = 50; logoState[side].y = 50;
+  document.getElementById('pos-logo-' + side + '-x').value = 50;
+  document.getElementById('pos-logo-' + side + '-y').value = 50;
+  document.getElementById('sv-logo-' + side + '-x').textContent = 50;
+  document.getElementById('sv-logo-' + side + '-y').textContent = 50;
+  document.getElementById('bleed-logo-' + side).value = 100;
+  document.getElementById('sv-logo-' + side + '-bleed').textContent = 100;
+  document.getElementById('offset-logo-' + side).value = 50;
+  document.getElementById('sv-logo-' + side + '-offset').textContent = 50;
+  // Reset slot height/top to bar defaults
+  slot.style.height = '290px';
+  slot.style.top    = '0px';
+  const style = getLogoImgStyle(side);
+  slot.innerHTML = `<img src="${url}" style="${style}">`;
+  preview.innerHTML = `<img src="${url}">`;
+}
+function clearLogo(side) {
+  document.getElementById('logo-' + side + '-slot').innerHTML = '<div class="logo-slot-placeholder">LOGO</div>';
+  document.getElementById('logo-' + side + '-preview').innerHTML = '<span>' + side.toUpperCase() + '</span>';
+}
+
+// ── bar style — sync both halves ──
+const barStyles = {
+  silver: 'linear-gradient(180deg,#f0f0f0 0%,#e0e0e0 8%,#c8c8c8 18%,#d8d8d8 28%,#f2f2f2 48%,#e4e4e4 62%,#cccccc 76%,#bfbfbf 88%,#d0d0d0 100%)',
+  dark:   'linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 15%,#1e1e1e 30%,#252525 50%,#2e2e2e 70%,#222 85%,#181818 100%)',
+  white:  'linear-gradient(180deg,#ffffff 0%,#f4f4f4 30%,#eeeeee 50%,#f6f6f6 70%,#ffffff 100%)',
+};
+function syncBothBgs(bg) {
+  document.getElementById('bar-bg-el').style.background = bg;
+  document.getElementById('bar-bg-el-left').style.background = bg;
+}
+function applyBarStyle(val) {
+  document.getElementById('custom-color-wrap').style.display = val === 'custom' ? '' : 'none';
+  if (val === 'custom') {
+    applyCustomBarColor(document.getElementById('bar-color-pick').value);
+  } else {
+    syncBothBgs(barStyles[val]);
+  }
+}
+function applyCustomBarColor(hex) {
+  document.getElementById('bar-color-hex').value = hex;
+  document.getElementById('bar-color-swatch').style.background = hex;
+  syncBothBgs(hex);
+}
+
+// ── ANIMATION ──
+let animTimeout = null;
+
+function getAnimDuration() {
+  // Base wipe duration 550ms scaled by speed %
+  const speed = parseInt(document.getElementById('anim-speed').value) / 100;
+  return Math.round(550 / speed);
+}
+
+function playAnimation() {
+  clearTimeout(animTimeout);
+  const g = document.getElementById('bar-graphic');
+
+  // Reset: remove playing class and force reflow
+  g.classList.remove('playing');
+  void g.offsetWidth; // force reflow to restart animation
+
+  // Apply speed via CSS custom property on the element
+  const wipeDuration  = getAnimDuration();
+  const fadeDuration  = Math.round(wipeDuration * 0.82);
+  const fadeDelay     = Math.round(wipeDuration * 0.82);
+
+  g.style.setProperty('--wipe-dur',  wipeDuration  + 'ms');
+  g.style.setProperty('--fade-dur',  fadeDuration  + 'ms');
+  g.style.setProperty('--fade-delay', fadeDelay    + 'ms');
+
+  // Override animation durations from CSS vars
+  g.querySelectorAll('.bar-half-left, .bar-half-right').forEach(el => {
+    el.style.animationDuration = wipeDuration + 'ms';
+  });
+  g.querySelectorAll('.bar-content-anim').forEach(el => {
+    el.style.animationDuration = fadeDuration + 'ms';
+    el.style.animationDelay   = fadeDelay + 'ms';
+  });
+  g.querySelectorAll('.bar-bg-anim::before, .bar-bg-anim::after').forEach(el => {
+    el.style.animationDuration = wipeDuration + 'ms';
+  });
+
+  document.getElementById('anim-status').textContent = 'Playing…';
+  g.classList.add('playing');
+
+  const holdMs    = parseFloat(document.getElementById('anim-hold').value) * 1000;
+  const totalMs   = wipeDuration + fadeDelay + fadeDuration + holdMs;
+  animTimeout = setTimeout(() => {
+    document.getElementById('anim-status').textContent = 'Ready';
+  }, totalMs);
+}
+
+// ── RECORD WebM ──
+async function recordAnimation() {
+  const btn    = document.getElementById('record-btn');
+  const status = document.getElementById('anim-status');
+
+  // Build a full 1920×1080 off-screen canvas showing the animation
+  // We use canvas capture + MediaRecorder
+
+  // Check support
+  if (!window.MediaRecorder || !MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+    if (!window.MediaRecorder) {
+      alert('MediaRecorder not supported in this browser. Try Chrome or Edge.');
+      return;
+    }
+  }
+
+  btn.disabled = true;
+  status.textContent = '⏺ Recording…';
+
+  const wipeDuration = getAnimDuration();
+  const fadeDuration = Math.round(wipeDuration * 0.82);
+  const fadeDelay    = Math.round(wipeDuration * 0.82);
+  const holdMs       = parseFloat(document.getElementById('anim-hold').value) * 1000;
+  const totalMs      = wipeDuration + fadeDelay + fadeDuration + holdMs + 200; // +200 tail
+
+  const OUT_W = 1920, OUT_H = 1080, BAR_H = 290;
+  const barTopY = Math.round((OUT_H - BAR_H) / 2);
+
+  // We'll render frames using the live animated DOM element via canvas capture
+  // First render to a canvas stream
+  const recordCanvas = document.createElement('canvas');
+  recordCanvas.width  = OUT_W;
+  recordCanvas.height = OUT_H;
+  const rCtx = recordCanvas.getContext('2d');
+
+  const stream = recordCanvas.captureStream(60);
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9'
+    : 'video/webm';
+  const recorder = new MediaRecorder(stream, { mimeType });
+  const chunks = [];
+  recorder.ondataavailable = e => e.data.size > 0 && chunks.push(e.data);
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: mimeType });
+    const kb   = Math.round(blob.size / 1024);
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'topic_bar_animated.webm'; a.click();
+    URL.revokeObjectURL(url);
+    btn.disabled = false;
+    status.textContent = `Saved — ${kb} KB`;
+  };
+
+  // Snapshot the bar DOM into the canvas each frame
+  const graphic = document.getElementById('bar-graphic');
+  const placeholders = graphic.querySelectorAll('.logo-slot-placeholder');
+
+  // Hide placeholders
+  placeholders.forEach(p => p.style.display = 'none');
+
+  let rafId;
+  const startTime = performance.now();
+
+  async function renderFrame() {
+    const elapsed = performance.now() - startTime;
+
+    // Use html2canvas to snapshot current animation state
+    try {
+      const snap = await html2canvas(graphic, {
+        scale: 1, useCORS: true, allowTaint: true,
+        backgroundColor: null, logging: false,
+        width: 1920, height: BAR_H,
+      });
+      rCtx.clearRect(0, 0, OUT_W, OUT_H);
+      rCtx.drawImage(snap, 0, barTopY);
+    } catch(e) {}
+
+    if (elapsed < totalMs) {
+      rafId = requestAnimationFrame(renderFrame);
+    } else {
+      recorder.stop();
+      placeholders.forEach(p => p.style.display = '');
+    }
+  }
+
+  recorder.start();
+
+  // Kick off animation
+  playAnimation();
+  renderFrame();
+}
+
+// ── DOWNLOAD static WebP (unchanged) ──
+async function downloadBar() {
+  const btn = document.getElementById('download-btn');
+  btn.disabled = true; btn.textContent = '⏳ Rendering…';
+
+  // Hide placeholders
+  const graphic = document.getElementById('bar-graphic');
+  const placeholders = graphic.querySelectorAll('.logo-slot-placeholder');
+  placeholders.forEach(p => p.style.display = 'none');
+
+  const OUT_W = 1920, OUT_H = 1080, BAR_H = 290;
+  const barTop = Math.round((OUT_H - BAR_H) / 2);
+
+  const container = document.createElement('div');
+  container.style.cssText = `
+    position:fixed; left:-9999px; top:0;
+    width:${OUT_W}px; height:${OUT_H}px;
+    background:transparent; overflow:visible;
+  `;
+
+  const clone = graphic.cloneNode(true);
+  clone.style.cssText = `
+    position:absolute; left:0; top:${barTop}px;
+    width:1920px; height:${BAR_H}px;
+    transform:none; overflow:visible;
+  `;
+
+  container.appendChild(clone);
+  document.body.appendChild(container);
+
+  try {
+    // 1× scale — full 1920×1080 resolution, no doubling
+    const canvas = await html2canvas(container, {
+      scale: 1,
+      useCORS: true, allowTaint: true,
+      backgroundColor: null, logging: false,
+      width: OUT_W, height: OUT_H,
+    });
+
+    document.body.removeChild(container);
+    placeholders.forEach(p => p.style.display = '');
+
+    // WebP supports alpha + quality compression → hits ~100-150KB at q0.65
+    const quality = 0.65;
+    canvas.toBlob(blob => {
+      const kb = Math.round(blob.size / 1024);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'topic_bar.webp';
+      a.click();
+      URL.revokeObjectURL(url);
+      btn.disabled = false;
+      btn.innerHTML = `⬇ Download WebP (1920×1080, alpha) — last export: ${kb} KB`;
+    }, 'image/webp', quality);
+
+  } catch(err) {
+    if (document.body.contains(container)) document.body.removeChild(container);
+    placeholders.forEach(p => p.style.display = '');
+    alert('Export failed: ' + err.message);
+    btn.disabled = false; btn.innerHTML = '⬇ Download WebP (1920×1080, alpha)';
+  }
+}
+
+// init
+applyTextShadow();
+// Auto-play animation on load after a short delay
+setTimeout(playAnimation, 300);
+</script>
+</body>
+</html>
