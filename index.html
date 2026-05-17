@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GraphicStudio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0e11;
+  --bg2: #16161a;
+  --bg3: #1e1e24;
+  --bg4: #28282f;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #f0f0f4;
+  --text2: #9090a0;
+  --text3: #555560;
+  --accent: #4f7fff;
+  --accent2: #3a65e0;
+  --accent-glow: rgba(79,127,255,0.18);
+  --green: #2ecc82;
+  --amber: #f5a623;
+  --red: #ff4f6a;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --font: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --sidebar-w: 210px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOPNAV ── */
+.topnav {
+  height: 48px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 14px;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-right: 10px;
+}
+.logo-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+.nav-tab {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.nav-tab:hover { color: var(--text); background: var(--bg3); }
+.nav-tab.active { color: var(--text); background: var(--bg3); }
+.topnav-spacer { flex: 1; }
+.topnav-search {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 11px;
+  width: 200px;
+}
+.topnav-search input {
+  background: transparent; border: none; outline: none;
+  font-family: var(--font); font-size: 12px; color: var(--text);
+  width: 100%;
+}
+.topnav-search input::placeholder { color: var(--text3); }
+.topnav-search svg { flex-shrink: 0; }
+.avatar-btn {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, #4f7fff, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white;
+  cursor: pointer; margin-left: 4px;
+}
+
+/* ── LAYOUT ── */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 14px 8px;
+  gap: 2px;
+}
+.sidebar-section {
+  font-size: 9px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--text3);
+  padding: 10px 10px 4px;
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px; border-radius: var(--radius);
+  font-size: 13px; color: var(--text2);
+  cursor: pointer; transition: all 0.15s;
+}
+.sidebar-item:hover { color: var(--text); background: var(--bg3); }
+.sidebar-item.active { color: var(--accent); background: rgba(79,127,255,0.1); }
+.sidebar-item .icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+.sidebar-item.active .icon { opacity: 1; }
+.sidebar-badge {
+  margin-left: auto; font-size: 10px; font-weight: 600;
+  background: var(--accent); color: white;
+  padding: 1px 6px; border-radius: 10px;
+}
+.sidebar-divider { height: 1px; background: var(--border); margin: 8px 6px; }
+
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── VIEWS ── */
+.view { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.view.active { display: flex; }
+
+/* ── LIBRARY VIEW ── */
+.library-header {
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-end; gap: 16px;
+  flex-shrink: 0;
+}
+.library-title { font-size: 20px; font-weight: 600; color: var(--text); }
+.library-count { font-size: 13px; color: var(--text3); margin-bottom: 2px; }
+.library-actions { margin-left: auto; display: flex; gap: 8px; }
+.btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius);
+  font-family: var(--font); font-size: 12px; font-weight: 500;
+  cursor: pointer; border: none; transition: all 0.15s;
+}
+.btn-ghost {
+  background: var(--bg3); color: var(--text2);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+.btn-primary {
+  background: var(--accent); color: white;
+}
+.btn-primary:hover { background: var(--accent2); }
+
+.filter-bar {
+  padding: 12px 24px;
+  display: flex; gap: 6px; align-items: center;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.chip {
+  padding: 5px 13px; border-radius: 20px;
+  font-size: 11px; font-weight: 500;
+  border: 1px solid var(--border);
+  color: var(--text2); cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  background: transparent;
+}
+.chip:hover { border-color: var(--border2); color: var(--text); }
+.chip.active { background: rgba(79,127,255,0.12); border-color: var(--accent); color: var(--accent); }
+
+.library-scroll {
+  flex: 1; overflow-y: auto;
+  padding: 20px 24px;
+}
+.library-section-label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text3); margin-bottom: 12px;
+}
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.tcard {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+}
+.tcard:hover { border-color: var(--border2); transform: translateY(-1px); }
+.tcard.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 16px var(--accent-glow); }
+.tcard-thumb {
+  height: 110px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; position: relative;
+}
+.tcard-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.18s;
+  gap: 8px;
+}
+.tcard:hover .tcard-overlay { background: rgba(0,0,0,0.55); }
+.tcard-overlay-btn {
+  opacity: 0; transform: translateY(4px);
+  background: white; color: #111;
+  border: none; border-radius: 6px;
+  padding: 6px 12px; font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: all 0.18s; font-family: var(--font);
+}
+.tcard-overlay-btn.outline {
+  background: transparent; color: white;
+  border: 1px solid rgba(255,255,255,0.4);
+}
+.tcard:hover .tcard-overlay-btn { opacity: 1; transform: translateY(0); }
+.tcard-info { padding: 10px 12px; }
+.tcard-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.tcard-meta { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px; }
+.tag {
+  font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 2px 6px; border-radius: 4px;
+}
+.tag-blue { background: rgba(79,127,255,0.15); color: var(--accent); }
+.tag-green { background: rgba(46,204,130,0.12); color: var(--green); }
+.tag-amber { background: rgba(245,166,35,0.12); color: var(--amber); }
+
+/* thumbnail art */
+.t-sports { background: #0d1117; }
+.t-social { background: #120d1e; }
+.t-news { background: #131000; }
+.t-bracket { background: #0a130a; }
+.t-score { background: #13070a; }
+.t-info { background: #070d13; }
+.t-profile { background: #0d0d13; }
+.t-poll { background: #0d1310; }
+
+/* ── EDITOR VIEW ── */
+.editor-layout {
+  flex: 1; display: flex; overflow: hidden;
+}
+.editor-left {
+  width: 300px; min-width: 300px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.editor-header {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.back-btn {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: var(--bg3); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+}
+.back-btn:hover { background: var(--bg4); }
+.editor-title { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.editor-scroll { flex: 1; overflow-y: auto; padding: 14px; }
+.prop-section { margin-bottom: 18px; }
+.prop-section-title {
+  font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text3); margin-bottom: 10px;
+}
+.prop-row { margin-bottom: 10px; }
+.prop-label {
+  font-size: 11px; color: var(--text2);
+  display: block; margin-bottom: 4px;
+}
+.prop-input {
+  width: 100%; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: 7px;
+  color: var(--text); font-family: var(--font); font-size: 12px;
+  padding: 7px 10px; outline: none; transition: border-color 0.15s;
+}
+.prop-input:focus { border-color: var(--accent); }
+.prop-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.prop-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.color-row { display: flex; gap: 6px; align-items: center; }
+.color-swatch {
+  width: 30px; height: 30px; border-radius: 7px;
+  border: 1px solid var(--border2); cursor: pointer; flex-shrink: 0;
+}
+.color-hex {
+  flex: 1; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: 7px;
+  color: var(--text); font-family: var(--font-mono); font-size: 11px;
+  padding: 6px 9px; outline: none;
+}
+
+.editor-footer {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 8px;
+  flex-shrink: 0;
+}
+
+/* canvas pane */
+.editor-canvas {
+  flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--bg);
+}
+.canvas-toolbar {
+  height: 42px; background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px; gap: 10px;
+  flex-shrink: 0;
+}
+.canvas-toolbar-label { font-size: 11px; color: var(--text3); }
+.zoom-badge {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text2);
+  background: var(--bg3); padding: 3px 8px; border-radius: 5px;
+}
+.canvas-area {
+  flex: 1; overflow: auto;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 24px;
+}
+.canvas-frame {
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08);
+  transform-origin: top center;
+  width: 700px;
+  flex-shrink: 0;
+}
+.canvas-frame iframe {
+  width: 960px;
+  height: 520px;
+  border: none;
+  display: block;
+  transform: scale(0.729);
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+/* ── PLACEHOLDER STATES ── */
+.empty-state {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; color: var(--text3);
+}
+.empty-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: var(--bg3); display: flex; align-items: center; justify-content: center;
+}
+.empty-title { font-size: 14px; color: var(--text2); font-weight: 500; }
+.empty-sub { font-size: 12px; text-align: center; max-width: 220px; line-height: 1.6; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+
+/* ── THUMB SVGS ── */
+.thumb-nfl {
+  width: 90%; height: 85%;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.tn-header { background: rgba(255,255,255,0.1); border-radius: 2px; height: 14px; display: flex; align-items: center; justify-content: center; }
+.tn-header span { font-size: 5px; font-weight: 800; color: rgba(255,255,255,0.6); letter-spacing: 0.15em; }
+.tn-cols { display: flex; gap: 3px; flex: 1; }
+.tn-player { background: rgba(255,255,255,0.07); border-radius: 2px; flex: 1; }
+.tn-stats { background: rgba(255,255,255,0.05); border-radius: 2px; flex: 1.4; padding: 3px; display: flex; flex-direction: column; gap: 2px; }
+.tn-row { display: flex; gap: 2px; }
+.tn-cell { background: rgba(255,255,255,0.09); border-radius: 1px; flex: 1; height: 6px; }
+.tn-lbl { background: rgba(255,255,255,0.04); border-radius: 1px; flex: 1.4; height: 6px; }
+.tn-bars { display: flex; gap: 3px; margin-top: 2px; }
+.tn-bar-l { flex: 1; height: 7px; background: #0085CA; border-radius: 1px; }
+.tn-bar-r { flex: 1; height: 7px; background: #D50A0A; border-radius: 1px; }
+
+/* Recently opened */
+.recents-row {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 12px;
+  margin-bottom: 24px;
+}
+.recent-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; cursor: pointer;
+  transition: all 0.15s;
+}
+.recent-card:hover { border-color: var(--border2); }
+.recent-thumb { height: 70px; }
+.recent-info { padding: 8px 10px; }
+.recent-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.recent-date { font-size: 10px; color: var(--text3); margin-top: 1px; }
+
+/* ── MODAL ── */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 200;
+  align-items: center; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg); padding: 22px 24px; width: 420px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+}
+.modal-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.modal-sub { font-size: 12px; color: var(--text2); margin-bottom: 18px; line-height: 1.6; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 10px 16px;
+  font-size: 13px; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  transform: translateY(80px); opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 300;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+/* My Graphics / Assets empty states */
+.page-empty {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; padding: 40px;
+}
+.page-empty-icon {
+  width: 64px; height: 64px; border-radius: 16px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+}
+.page-empty-title { font-size: 16px; font-weight: 500; color: var(--text2); }
+.page-empty-text { font-size: 13px; color: var(--text3); text-align: center; line-height: 1.7; max-width: 280px; }
+
+/* canvas iframe scale container */
+.iframe-scaler {
+  width: 960px; height: 520px;
+}
+</style>
+</head>
+<body>
+
+<!-- TOPNAV -->
+<nav class="topnav">
+  <div class="logo"><div class="logo-dot"></div>GraphicStudio</div>
+  <div class="nav-tab active" onclick="showView('library', this)">Templates</div>
+  <div class="nav-tab" onclick="showView('mygraphics', this)">My Graphics</div>
+  <div class="nav-tab" onclick="showView('assets', this)">Assets</div>
+  <div class="topnav-spacer"></div>
+  <div class="topnav-search">
+    <svg width="12" height="12" fill="none" stroke="#555560" stroke-width="1.5" viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l3 3"/></svg>
+    <input placeholder="Search…" id="search-input" oninput="filterTemplates(this.value)">
+  </div>
+  <div class="avatar-btn">JD</div>
+</nav>
+
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">Workspace</div>
+    <div class="sidebar-item active" id="sb-templates" onclick="showView('library'); setActiveSidebar(this)">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      Templates
+    </div>
+    <div class="sidebar-item" id="sb-mygraphics" onclick="showView('mygraphics'); setActiveSidebar(this)">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M2 12L6 8l3 3 3-4 4 5"/><rect x="1" y="1" width="14" height="14" rx="2"/></svg>
+      My Graphics
+      <span class="sidebar-badge">2</span>
+    </div>
+    <div class="sidebar-item" id="sb-recent" onclick="scrollToRecent()">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+      Recent
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Categories</div>
+    <div class="sidebar-item" onclick="filterByCategory('Sports')">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M5 8a3 3 0 0 0 6 0"/></svg>
+      Sports
+    </div>
+    <div class="sidebar-item" onclick="filterByCategory('Social')">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M14 9a5 5 0 0 1-5 5H5l-3 2V9a5 5 0 0 1 5-5h2"/><circle cx="12" cy="4" r="3"/></svg>
+      Social
+    </div>
+    <div class="sidebar-item" onclick="filterByCategory('News')">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>
+      News
+    </div>
+    <div class="sidebar-item" onclick="filterByCategory('Brackets')">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M2 4h4v3H2M6 5.5h4M10 4h4v3h-4M10 5.5h1v3h-1M5 5.5v3H6M6 8.5h4M10 8.5h1"/></svg>
+      Brackets
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Assets</div>
+    <div class="sidebar-item" id="sb-assets" onclick="showView('assets'); setActiveSidebar(this)">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><circle cx="6" cy="6" r="1.5"/><path d="M2 11l4-4 3 3 2-2 3 3"/></svg>
+      Brand Assets
+    </div>
+    <div class="sidebar-item">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M8 2v8M5 7l3 3 3-3M2 12h12"/></svg>
+      Upload Media
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <main class="main">
+
+    <!-- ── LIBRARY VIEW ── -->
+    <div class="view active" id="view-library">
+      <div class="library-header">
+        <div>
+          <div class="library-title">Template Library</div>
+          <div class="library-count" id="template-count">10 templates</div>
+        </div>
+        <div class="library-actions">
+          <button class="btn btn-ghost" onclick="showModal()">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M8 2v12M2 8h12"/></svg>
+            New Template
+          </button>
+          <button class="btn btn-primary" onclick="openFullEditor()">
+            <svg width="12" height="12" fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 16 16"><path d="M2 14l1-4L11 2l3 3-8 8-4 1z"/></svg>
+            Open Editor
+          </button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <div class="chip active" data-cat="All" onclick="filterByChip(this, 'All')">All</div>
+        <div class="chip" data-cat="Sports" onclick="filterByChip(this, 'Sports')">Sports</div>
+        <div class="chip" data-cat="Social" onclick="filterByChip(this, 'Social')">Social</div>
+        <div class="chip" data-cat="News" onclick="filterByChip(this, 'News')">News</div>
+        <div class="chip" data-cat="Brackets" onclick="filterByChip(this, 'Brackets')">Brackets</div>
+        <div class="chip" data-cat="Infographic" onclick="filterByChip(this, 'Infographic')">Infographic</div>
+        <div class="chip" data-cat="Scoreboard" onclick="filterByChip(this, 'Scoreboard')">Scoreboard</div>
+      </div>
+      <div class="library-scroll" id="library-scroll">
+
+        <div id="recent-anchor"></div>
+        <div class="library-section-label" style="margin-bottom:10px;">Recently opened</div>
+        <div class="recents-row">
+          <div class="recent-card" onclick="openFullEditor()">
+            <div class="recent-thumb t-sports" style="display:flex;align-items:center;justify-content:center;">
+              <div style="width:86%;height:78%;display:flex;flex-direction:column;gap:2px;">
+                <div class="tn-header"><span>NFL SPOTLIGHT</span></div>
+                <div class="tn-cols">
+                  <div class="tn-player"></div>
+                  <div class="tn-stats">
+                    <div class="tn-row"><div class="tn-cell"></div><div class="tn-lbl"></div><div class="tn-cell"></div></div>
+                    <div class="tn-row"><div class="tn-cell"></div><div class="tn-lbl"></div><div class="tn-cell"></div></div>
+                  </div>
+                  <div class="tn-player"></div>
+                </div>
+                <div class="tn-bars"><div class="tn-bar-l" style="flex:1;"></div><div style="flex:1.4;"></div><div class="tn-bar-r" style="flex:1;"></div></div>
+              </div>
+            </div>
+            <div class="recent-info">
+              <div class="recent-name">NFL Spotlight Matchup</div>
+              <div class="recent-date">Edited 2 hours ago</div>
+            </div>
+          </div>
+          <div class="recent-card">
+            <div class="recent-thumb t-news" style="display:flex;align-items:center;justify-content:center;">
+              <div style="width:80%;height:80%;display:flex;flex-direction:column;gap:3px;">
+                <div style="background:#F4C700;border-radius:2px;height:10px;display:flex;align-items:center;padding:0 4px;"><span style="font-size:5px;font-weight:800;color:#000;letter-spacing:.1em;">BREAKING</span></div>
+                <div style="background:rgba(255,255,255,0.1);border-radius:2px;flex:1;"></div>
+                <div style="background:rgba(255,255,255,0.12);border-radius:1px;height:5px;"></div>
+                <div style="background:rgba(255,255,255,0.06);border-radius:1px;height:4px;width:75%;"></div>
+              </div>
+            </div>
+            <div class="recent-info">
+              <div class="recent-name">Breaking News Banner</div>
+              <div class="recent-date">Edited yesterday</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="library-section-label">Sports</div>
+        <div class="templates-grid" id="templates-grid">
+
+          <div class="tcard selected" data-cat="Sports" data-name="NFL Spotlight Matchup" onclick="selectTemplate(this)">
+            <div class="tcard-thumb t-sports">
+              <div style="width:88%;height:84%;display:flex;flex-direction:column;gap:3px;">
+                <div class="tn-header"><span>NFL SPOTLIGHT</span></div>
+                <div class="tn-cols">
+                  <div class="tn-player"></div>
+                  <div class="tn-stats">
+                    <div class="tn-row"><div class="tn-cell"></div><div class="tn-lbl"></div><div class="tn-cell"></div></div>
+                    <div class="tn-row"><div class="tn-cell"></div><div class="tn-lbl"></div><div class="tn-cell"></div></div>
+                    <div class="tn-row"><div class="tn-cell"></div><div class="tn-lbl"></div><div class="tn-cell"></div></div>
+                  </div>
+                  <div class="tn-player"></div>
+                </div>
+                <div class="tn-bars"><div class="tn-bar-l" style="flex:1;"></div><div style="flex:1.4;"></div><div class="tn-bar-r" style="flex:1;"></div></div>
+              </div>
+              <div class="tcard-overlay">
+                <button class="tcard-overlay-btn" onclick="event.stopPropagation(); openFullEditor()">Edit</button>
+                <button class="tcard-overlay-btn outline" onclick="event.stopPropagation(); showToast('Duplicated!')">Duplicate</button>
+              </div>
+            </div>
+            <div class="tcard-info">
+              <div class="tcard-name">NFL Spotlight Matchup</div>
+              <div class="tcard-meta">2 player slots · stats grid <span class="tag tag-blue">Yours</span></div>
+            </div>
+          </div>
+
+          <div class="tcard" data-cat="Sports" data-name="Topic Bar" onclick="selectTemplate(this)">
+            <div class="tcard-thumb" style="background:#1a1a1a;">
+              <div style="width:92%;height:42%;background:linear-gradient(180deg,#eee 0%,#d0d0d0 40%,#f2f2f2 60%,#ccc 100%);border-radius:3px;border-top:3px solid #666;border-bottom:3px solid #555;display:flex;align-items:center;padding:0 6px;gap:5px;">
+                <div style="width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.12);flex-shrink:0;"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:2px;align-items:center;">
+                  <div style="background:rgba(0,0,0,0.2);border-radius:1px;height:5px;width:80%;"></div>
+                  <div style="background:rgba(0,0,0,0.13);border-radius:1px;height:4px;width:65%;"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.12);flex-shrink:0;"></div>
+              </div>
+              <div class="tcard-overlay">
+                <button class="tcard-overlay-btn" onclick="event.stopPropagation(); window.open('TopicBar.html','_blank')">Edit</button>
+                <button class="tcard-overlay-btn outline" onclick="event.stopPropagation(); showToast('Duplicated!')">Duplicate</button>
+              </div>
+            </div>
+            <div class="tcard-info">
+              <div class="tcard-name">Topic Bar</div>
+              <div class="tcard-meta">Overlay · 1920×290 · alpha PNG <span class="tag tag-blue">Yours</span></div>
+            </div>
+          </div>
+
+          <div class="tcard" data-cat="Sports" data-name="Draft List Graphic" onclick="selectTemplate(this)">
+            <div class="tcard-thumb t-sports" style="background:#111;">
+              <div style="width:88%;height:88%;display:flex;gap:4px;">
+                <div style="flex:1;display:flex;flex-direction:column;gap:3px;padding-top:4px;">
+                  <div style="background:rgba(255,255,255,0.18);border-radius:2px;height:12px;width:70%;"></div>
+                  <div style="display:flex;align-items:center;gap:3px;"><div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.1);"></div><div style="background:rgba(255,255,255,0.1);border-radius:1px;height:7px;flex:1;"></div></div>
+                  <div style="display:flex;align-items:center;gap:3px;"><div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.1);"></div><div style="background:rgba(255,255,255,0.1);border-radius:1px;height:7px;flex:1;"></div></div>
+                  <div style="display:flex;align-items:center;gap:3px;"><div style="width:10px;height:10px;border-radius:50%;background:rgba(232,160,0,0.5);"></div><div style="background:rgba(232,160,0,0.35);border-radius:1px;height:7px;flex:1;"></div></div>
+                  <div style="display:flex;align-items:center;gap:3px;"><div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.1);"></div><div style="background:rgba(255,255,255,0.1);border-radius:1px;height:7px;flex:1;"></div></div>
+                  <div style="display:flex;align-items:center;gap:3px;"><div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.1);"></div><div style="background:rgba(255,255,255,0.1);border-radius:1px;height:7px;flex:1;"></div></div>
+                </div>
+                <div style="width:36%;background:rgba(255,255,255,0.07);border-radius:2px;"></div>
+              </div>
+              <div class="tcard-overlay">
+                <button class="tcard-overlay-btn" onclick="event.stopPropagation(); window.open('DraftGraphic.html','_blank')">Edit</button>
+                <button class="tcard-overlay-btn outline" onclick="event.stopPropagation(); showToast('Duplicated!')">Duplicate</button>
+              </div>
+            </div>
+            <div class="tcard-info">
+              <div class="tcard-name">Draft / List Graphic</div>
+              <div class="tcard-meta">Full screen · list + photo <span class="tag tag-blue">Yours</span></div>
+            </div>
+          </div>
+
+          <div class="tcard" data-cat="Scoreboard" data-name="Game Scoreboard" onclick="selectTemplate(this)">
+            <div class="tcard-thumb t-score">
+              <div style="width:80%;display:flex;flex-direction:column;gap:3px;align-items:center;">
+                <div style="background:rgba(255,255,255,0.07);border-radius:2px;height:10px;width:100%;display:flex;align-items:center;justify-content:center;"><span style="font-size:5px;color:rgba(255,255,255,0.4);letter-spacing:.12em;">FINAL</span></div>
+                <div style="display:flex;gap:4px;width:100%;">
+                  <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:3px;height:30px;display:flex;align-items:center;justify-content:center;"><span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);">KC</span></div>
+                  <div style="width:20px;background:rgba(255,255,255,0.04);border-radius:2px;height:30px;display:flex;align-items:center;justify-content:center;"><span style="font-size:7px;color:rgba(255,255,255,0.3);">vs</span></div>
+                  <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:3px;height:30px;display:flex;align-items:center;justify-content:center;"><span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);">SF</span></div>
+                </div>
+                <div style="display:flex;gap:2px;width:100%;">
+                  <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:2px;height:8px;"></div>
+                  <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:2px;height:8px;"></div>
+                  <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:2px;height:8px;"></div>
+                </div>
+              </div>
+              <div class="tcard-overlay">
+                <button class="tcard-overlay-btn" onclick="event.stopPropagation(); showToast('Coming soon!')">Edit</button>
+                <button class="tcard-overlay-btn outline" onclick="event.stopPropagation(); showToast('Duplicated!')">Duplicate</button>
+              </div>
+            </div>
+            <div class="tcard-info">
+              <div class="tcard-name">Game Scoreboard</div>
+              <div class="tcard-meta">Final score · box score <span class="tag tag-green">Popular</span></div>
+            </div>
+          </div>
+
+          <div class="tcard" data-cat="Brackets" data-name="Playoff Bracket" onclick="selectTemplate(this)">
+            <div class="tcard-thumb t-bracket">
+              <div style="width:88%;height:76%;display:flex;align-items:center;gap:5px;">
+                <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+                  <div style="background:rgba(255,255,255,0.09);border-radius:2px;height:10px;"></div>
+                  <div style="background:rgba(255,255,255,0.09);border-radius:2px;height:10px;"></div>
+                  <div style="background:rgba(255,255,255,0.09);border-radius:2px;height:10px;"></div>
+                  <div style="background:rgba(255,255,255,0.09);border-radius:2px;height:10px;"></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:14px;flex:1;">
+                  <div style="background:rgba(255,255,255,0.09);border-radius:2px;height:10px;"></div>
+                  <div style="background:rgba(255,255,255,0.09);border-radius:2px;height:10px;"></div>
+                </div>
+                <div style="display:flex;flex-direction:column;justify-content:center;flex:1;">
+                  <div style="background:rgba(79,127,255,0.3);border-radius:3px;height:13px;"></div>
+                </div>
+              </div>
+              <div class="tcard-overlay">
+                <button class="tcard-overlay-btn" onclick="event.stopPropagation(); showToast('Coming soon!')">Edit</button>
+                <button class="tcard-overlay-btn outline" onclick="event.stopPropagation(); showToast('Duplicated!')">Duplicate</button>
+              </div>
+            </div>
+            <div class="tcard-info">
+              <div class="tcard-name">Playoff Bracket</div>
+              <div class="tcard-meta">8-team · single elimination</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="library-section-label">Social &amp; News</div>
+        <div class="templates-grid">
+
+          <div class="tcard" data-cat="Social" data-name="Social Story Card" onclick="selectTemplate(this)">
+            <div class="tcard-thumb t-social">
+              <div style="width:50%;height:84%;display:flex;flex-direction:column;gap:3px;">
+                <div style="background:rgba(255,255,255,0.1);border-radius:3px;flex:1;"></div>
+                <div style="background:rgba(255,255,255,0.14);border-radius:2px;height:8px;"></div>
+                <div style="background:rgba(255,255,255,0.07);border-radius:2px;height:6px;width:70%;"></div>
+              </div>
+              <div class="tcard-overlay">
+                <button class="tcard-overlay-btn" onclick="event.stopPropagation(); showToast('Coming soon!')">Edit</button>
+                <button class="tcard-overlay-btn outline" onclick="event.stopPropagation(); showToast('Duplicated!')">Duplicate</button>
+              </div>
+            </div>
+            <div class="tcard-info">
+              <div class="tcard-name">Social Story Card</div>
+              <div class="tcard-meta">9:16 · headline + image</div>
+            </div>
+          </div>
+
+          <div class="tcard" data-cat="News" data-name="Breaking News Banner" onclick="selectTemplate(this)">
+            <div class="tcard-thumb t-news">
+              <div style="width:82%;height:82%;display:flex;flex-direction:column;gap:3px;">
+                <div style="background:#F4C700;border-radius:2px;height:11px;display:flex;align-items:center;padding:0 5px;"><span style="font-size:5px;font-weight:800;color:#000;letter-spacing:.1em;">BREAKING</span></div>
+                <div style="background:rgba(255,255,255,0.1);border-radius:2px;flex:1;"></div>
+                <div style="background:rgba(255,255,255,0.14);border-radius:1px;height:5px;"></div>
+                <div style="background:rgba(255,255,255,0.06);border-radius:1px;height:4px;width:75%;"></div>
+              </div>
+              <div class="tcard-overlay">
+                <button class="tcard-overlay-btn" onclick="event.stopPropagation(); showToast('Coming soon!')">Edit</button>
+                <button class="tcard-overlay-btn outline" onclick="event.stopPropagation(); showToast('Duplicated!')">Duplicate</button>
+              </div>
+            </div>
+            <div class="tcard-info">
+              <div class="tcard-name">Breaking News Banner</div>
+              <div class="tcard-meta">16:9 · headline + source <span class="tag tag-amber">New</span></div>
+            </div>
+          </div>
+
+          <div class="tcard" data-cat="Infographic" data-name="Stats Infographic" onclick="selectTemplate(this)">
+            <div class="tcard-thumb t-info">
+              <div style="width:82%;height:80%;display:flex;flex-direction:column;gap:3px;">
+                <div style="background:rgba(255,255,255,0.14);border-radius:2px;height:9px;margin-bottom:2px;"></div>
+                <div style="display:flex;gap:2px;align-items:center;">
+                  <div style="background:rgba(79,127,255,0.5);border-radius:1px;height:7px;width:70%;"></div>
+                  <div style="background:rgba(255,255,255,0.07);border-radius:1px;height:7px;flex:1;"></div>
+                </div>
+                <div style="display:flex;gap:2px;align-items:center;">
+                  <div style="background:rgba(79,127,255,0.5);border-radius:1px;height:7px;width:50%;"></div>
+                  <div style="background:rgba(255,255,255,0.07);border-radius:1px;height:7px;flex:1;"></div>
+                </div>
+                <div style="display:flex;gap:2px;align-items:center;">
+                  <div style="background:rgba(79,127,255,0.5);border-radius:1px;height:7px;width:85%;"></div>
+                  <div style="background:rgba(255,255,255,0.07);border-radius:1px;height:7px;flex:1;"></div>
+                </div>
+                <div style="display:flex;gap:2px;align-items:center;">
+                  <div style="background:rgba(79,127,255,0.5);border-radius:1px;height:7px;width:40%;"></div>
+                  <div style="background:rgba(255,255,255,0.07);border-radius:1px;height:7px;flex:1;"></div>
+                </div>
+              </div>
+              <div class="tcard-overlay">
+                <button class="tcard-overlay-btn" onclick="event.stopPropagation(); showToast('Coming soon!')">Edit</button>
+                <button class="tcard-overlay-btn outline" onclick="event.stopPropagation(); showToast('Duplicated!')">Duplicate</button>
+              </div>
+            </div>
+            <div class="tcard-info">
+              <div class="tcard-name">Stats Infographic</div>
+              <div class="tcard-meta">Bar chart · rankings <span class="tag tag-green">Popular</span></div>
+            </div>
+          </div>
+
+          <div class="tcard" data-cat="Social" data-name="Player Profile Card" onclick="selectTemplate(this)">
+            <div class="tcard-thumb t-profile">
+              <div style="width:70%;height:80%;display:flex;flex-direction:column;gap:3px;align-items:center;">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.12);"></div>
+                <div style="background:rgba(255,255,255,0.14);border-radius:2px;height:6px;width:80%;"></div>
+                <div style="background:rgba(255,255,255,0.06);border-radius:2px;height:5px;width:55%;"></div>
+                <div style="display:flex;gap:4px;margin-top:3px;">
+                  <div style="background:rgba(79,127,255,0.2);border-radius:2px;width:22px;height:16px;"></div>
+                  <div style="background:rgba(79,127,255,0.2);border-radius:2px;width:22px;height:16px;"></div>
+                  <div style="background:rgba(79,127,255,0.2);border-radius:2px;width:22px;height:16px;"></div>
+                </div>
+              </div>
+              <div class="tcard-overlay">
+                <button class="tcard-overlay-btn" onclick="event.stopPropagation(); showToast('Coming soon!')">Edit</button>
+                <button class="tcard-overlay-btn outline" onclick="event.stopPropagation(); showToast('Duplicated!')">Duplicate</button>
+              </div>
+            </div>
+            <div class="tcard-info">
+              <div class="tcard-name">Player Profile Card</div>
+              <div class="tcard-meta">Headshot · key stats</div>
+            </div>
+          </div>
+
+          <div class="tcard" data-cat="Social" data-name="Fan Poll Graphic" onclick="selectTemplate(this)">
+            <div class="tcard-thumb t-poll">
+              <div style="width:80%;display:flex;flex-direction:column;gap:3px;">
+                <div style="background:rgba(255,255,255,0.1);border-radius:2px;height:8px;margin-bottom:2px;"></div>
+                <div style="background:rgba(79,127,255,0.3);border-radius:2px;height:10px;width:72%;"></div>
+                <div style="background:rgba(255,255,255,0.07);border-radius:2px;height:10px;width:100%;"></div>
+                <div style="background:rgba(255,80,105,0.25);border-radius:2px;height:10px;width:45%;"></div>
+              </div>
+              <div class="tcard-overlay">
+                <button class="tcard-overlay-btn" onclick="event.stopPropagation(); showToast('Coming soon!')">Edit</button>
+                <button class="tcard-overlay-btn outline" onclick="event.stopPropagation(); showToast('Duplicated!')">Duplicate</button>
+              </div>
+            </div>
+            <div class="tcard-info">
+              <div class="tcard-name">Fan Poll Graphic</div>
+              <div class="tcard-meta">Question · % bars <span class="tag tag-amber">New</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ADD TEMPLATE placeholder -->
+        <div class="library-section-label">Add more</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px;">
+          <div class="tcard" onclick="showModal()" style="border-style:dashed;opacity:0.5;">
+            <div class="tcard-thumb" style="background:var(--bg3);">
+              <div style="text-align:center;color:var(--text3);">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M8 2v12M2 8h12"/></svg>
+                <div style="font-size:11px;margin-top:6px;">Upload template</div>
+              </div>
+            </div>
+            <div class="tcard-info">
+              <div class="tcard-name" style="color:var(--text3);">Import HTML template</div>
+              <div class="tcard-meta">.html file</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── EDITOR VIEW ── -->
+    <div class="view" id="view-editor">
+      <div class="editor-layout">
+        <div class="editor-left">
+          <div class="editor-header">
+            <div class="back-btn" onclick="showView('library')">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5"/></svg>
+            </div>
+            <div class="editor-title">NFL Spotlight Matchup</div>
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;" title="Live preview"></div>
+          </div>
+          <div class="editor-scroll">
+
+            <div class="prop-section">
+              <div class="prop-section-title">Layer 0 · Branding</div>
+              <div class="prop-row">
+                <span class="prop-label">Top label</span>
+                <input class="prop-input" value="NFL" oninput="liveUpdate('el-nfllabel', this.value)">
+              </div>
+              <div class="prop-row">
+                <span class="prop-label">Main title</span>
+                <input class="prop-input" value="SPOTLIGHT" oninput="liveUpdate('el-spotlight', this.value)">
+              </div>
+              <div class="prop-row">
+                <span class="prop-label">Subtitle</span>
+                <input class="prop-input" value="with Ari Meirov · 33rdTeam" oninput="liveUpdate('el-spotlightsub', this.value)">
+              </div>
+            </div>
+
+            <div class="prop-section">
+              <div class="prop-section-title">Layer 1 · Matchup Header</div>
+              <div class="prop-row">
+                <span class="prop-label">Header text</span>
+                <input class="prop-input" value="PANTHERS VS BUCCANEERS WEEK 18" oninput="liveUpdate('el-header', this.value)">
+              </div>
+              <div class="prop-row">
+                <span class="prop-label">Subheader</span>
+                <input class="prop-input" value="SEASON STATS (RANK)" oninput="liveUpdate('el-subheader', this.value)">
+              </div>
+            </div>
+
+            <div class="prop-section">
+              <div class="prop-section-title">Layer 5 · Teams</div>
+              <div class="prop-grid2">
+                <div class="prop-row">
+                  <span class="prop-label">Left team</span>
+                  <input class="prop-input" value="PANTHERS (8-8)" oninput="liveUpdate('el-leftteam', this.value)">
+                </div>
+                <div class="prop-row">
+                  <span class="prop-label">Right team</span>
+                  <input class="prop-input" value="BUCCANEERS (7-9)" oninput="liveUpdate('el-rightteam', this.value)">
+                </div>
+              </div>
+              <div class="prop-grid2">
+                <div class="prop-row">
+                  <span class="prop-label">Left bar color</span>
+                  <div class="color-row">
+                    <input type="color" class="color-swatch" value="#0085CA" oninput="liveColorUpdate('el-leftteam', this.value); this.nextElementSibling.value=this.value">
+                    <input class="color-hex" value="#0085CA" maxlength="7">
+                  </div>
+                </div>
+                <div class="prop-row">
+                  <span class="prop-label">Right bar color</span>
+                  <div class="color-row">
+                    <input type="color" class="color-swatch" value="#D50A0A" oninput="liveColorUpdate('el-rightteam', this.value); this.nextElementSibling.value=this.value">
+                    <input class="color-hex" value="#D50A0A" maxlength="7">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="prop-section">
+              <div class="prop-section-title">Layer 3 · Stats</div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.6;">Edit stat rows — left value, label, right value.</div>
+              <div class="prop-grid3">
+                <div class="prop-row"><span class="prop-label">Left 1</span><input class="prop-input" value="173.9 (26)" oninput="liveUpdate('el-l1',this.value)"></div>
+                <div class="prop-row"><span class="prop-label">Label 1</span><input class="prop-input" value="PASS YDS/GAME" oninput="liveUpdate('el-label1',this.value)"></div>
+                <div class="prop-row"><span class="prop-label">Right 1</span><input class="prop-input" value="206.4 (20)" oninput="liveUpdate('el-r1',this.value)"></div>
+                <div class="prop-row"><span class="prop-label">Left 2</span><input class="prop-input" value="122.4 (11)" oninput="liveUpdate('el-l2',this.value)"></div>
+                <div class="prop-row"><span class="prop-label">Label 2</span><input class="prop-input" value="RUSH YDS/GAME" oninput="liveUpdate('el-label2',this.value)"></div>
+                <div class="prop-row"><span class="prop-label">Right 2</span><input class="prop-input" value="112.9 (21)" oninput="liveUpdate('el-r2',this.value)"></div>
+              </div>
+            </div>
+
+            <div class="prop-section">
+              <div class="prop-section-title">Layer 6 · Background</div>
+              <div class="prop-row">
+                <span class="prop-label">Background color</span>
+                <div class="color-row">
+                  <input type="color" class="color-swatch" value="#111111" oninput="liveBgUpdate(this.value); this.nextElementSibling.value=this.value">
+                  <input class="color-hex" value="#111111" maxlength="7">
+                </div>
+              </div>
+              <div style="margin-top:6px;padding:8px 10px;background:var(--bg3);border-radius:7px;font-size:11px;color:var(--text3);line-height:1.7;border:1px solid var(--border);">
+                Full background controls (gradient, image upload, opacity) are available inside the template editor. Click <strong style="color:var(--text2);">Open Full Editor</strong> below.
+              </div>
+            </div>
+
+          </div>
+          <div class="editor-footer">
+            <button class="btn btn-ghost" style="flex:1;" onclick="showToast('Saved!')">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M13 10v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2M8 2v8M5 7l3 3 3-3"/></svg>
+              Export PNG
+            </button>
+            <button class="btn btn-primary" style="flex:1;" onclick="openFullEditor()">
+              Open Full Editor
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-canvas">
+          <div class="canvas-toolbar">
+            <span class="canvas-toolbar-label">Preview</span>
+            <span class="zoom-badge">73%</span>
+            <div style="flex:1;"></div>
+            <button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="showToast('Refreshed!')">
+              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M13 8A5 5 0 1 1 9 3.1"/><path d="M13 2v4h-4"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div class="canvas-area">
+            <div class="canvas-frame">
+              <iframe id="template-iframe" src="NFL_Matchup_Graphic.html" scrolling="no"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MY GRAPHICS VIEW ── -->
+    <div class="view" id="view-mygraphics">
+      <div class="library-header">
+        <div>
+          <div class="library-title">My Graphics</div>
+          <div class="library-count">2 saved graphics</div>
+        </div>
+        <div class="library-actions">
+          <button class="btn btn-primary" onclick="showView('library')">Browse Templates</button>
+        </div>
+      </div>
+      <div class="library-scroll">
+        <div class="recents-row" style="margin-top:4px;">
+          <div class="recent-card" onclick="openEditor()">
+            <div class="recent-thumb t-sports" style="display:flex;align-items:center;justify-content:center;">
+              <div style="width:86%;height:78%;display:flex;flex-direction:column;gap:2px;">
+                <div class="tn-header"><span>NFL SPOTLIGHT</span></div>
+                <div class="tn-cols"><div class="tn-player"></div><div class="tn-stats"><div class="tn-row"><div class="tn-cell"></div><div class="tn-lbl"></div><div class="tn-cell"></div></div><div class="tn-row"><div class="tn-cell"></div><div class="tn-lbl"></div><div class="tn-cell"></div></div></div><div class="tn-player"></div></div>
+                <div class="tn-bars"><div class="tn-bar-l" style="flex:1;"></div><div style="flex:1.4;"></div><div class="tn-bar-r" style="flex:1;"></div></div>
+              </div>
+            </div>
+            <div class="recent-info">
+              <div class="recent-name">Panthers vs Bucs — Wk 18</div>
+              <div class="recent-date">Exported 2h ago · PNG 3×</div>
+            </div>
+          </div>
+          <div class="recent-card">
+            <div class="recent-thumb t-news" style="display:flex;align-items:center;justify-content:center;">
+              <div style="width:80%;height:80%;display:flex;flex-direction:column;gap:3px;">
+                <div style="background:#F4C700;border-radius:2px;height:10px;display:flex;align-items:center;padding:0 4px;"><span style="font-size:5px;font-weight:800;color:#000;letter-spacing:.1em;">BREAKING</span></div>
+                <div style="background:rgba(255,255,255,0.1);border-radius:2px;flex:1;"></div>
+                <div style="background:rgba(255,255,255,0.12);border-radius:1px;height:5px;"></div>
+              </div>
+            </div>
+            <div class="recent-info">
+              <div class="recent-name">Trade Deadline Banner</div>
+              <div class="recent-date">Exported yesterday</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:24px;padding:16px;background:var(--bg2);border:1px dashed var(--border2);border-radius:var(--radius-lg);color:var(--text3);font-size:12px;line-height:1.8;">
+          <strong style="color:var(--text2);display:block;margin-bottom:4px;">Things to build here:</strong>
+          Folders / collections · Search & filter · Export history · Share links · Version history · Duplicate & rename
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ASSETS VIEW ── -->
+    <div class="view" id="view-assets">
+      <div class="library-header">
+        <div>
+          <div class="library-title">Brand Assets</div>
+          <div class="library-count">Logos, colors, fonts</div>
+        </div>
+        <div class="library-actions">
+          <button class="btn btn-ghost" onclick="showToast('Upload coming soon!')">Upload Asset</button>
+        </div>
+      </div>
+      <div class="library-scroll">
+        <div class="page-empty">
+          <div class="page-empty-icon">
+            <svg width="28" height="28" fill="none" stroke="var(--text3)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"/><circle cx="8" cy="8" r="2"/><path d="M2 15l6-6 4 4 3-3 7 7"/></svg>
+          </div>
+          <div class="page-empty-title">No assets uploaded yet</div>
+          <div class="page-empty-text">Upload logos, team colors, and fonts to use across all your templates — keeping every graphic on-brand automatically.</div>
+          <button class="btn btn-primary" onclick="showToast('Upload coming soon!')">Upload First Asset</button>
+          <div style="margin-top:24px;width:100%;max-width:380px;padding:14px 16px;background:var(--bg2);border:1px dashed var(--border2);border-radius:var(--radius-lg);color:var(--text3);font-size:12px;line-height:1.9;">
+            <strong style="color:var(--text2);display:block;margin-bottom:4px;">Things to build here:</strong>
+            Logo upload (SVG/PNG) · Brand color palette · Font management · Team preset packs · Auto-apply to templates
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title">Import HTML Template</div>
+    <div class="modal-sub">Upload a custom .html file to add it to your template library. The file should be a self-contained graphic with an editor UI.</div>
+    <div style="border:1px dashed var(--border2);border-radius:var(--radius);padding:20px;text-align:center;color:var(--text3);cursor:pointer;background:var(--bg3);">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16" style="margin-bottom:8px;"><path d="M8 2v8M5 7l3-3 3 3M2 12h12"/></svg>
+      <div style="font-size:13px;">Click to upload or drag & drop</div>
+      <div style="font-size:11px;margin-top:3px;">.html files only</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal(); showToast('Template imported!')">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <span id="toast-msg">Saved!</span>
+</div>
+
+<script>
+let activeView = 'library';
+
+function showView(name, tabEl) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  activeView = name;
+  if (tabEl) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+  }
+}
+
+function setActiveSidebar(el) {
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function openEditor() {
+  showView('editor');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+}
+
+function openFullEditor() {
+  window.open('NFL_Matchup_Graphic.html', '_blank');
+}
+
+function scrollToRecent() {
+  showView('library');
+  setTimeout(() => {
+    const anchor = document.getElementById('recent-anchor');
+    const scroll = document.getElementById('library-scroll');
+    if (anchor && scroll) scroll.scrollTo({ top: anchor.offsetTop - 20, behavior: 'smooth' });
+  }, 100);
+}
+
+function selectTemplate(el) {
+  document.querySelectorAll('.tcard').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function filterByChip(el, cat) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  filterTemplates(document.getElementById('search-input').value, cat);
+}
+
+function filterByCategory(cat) {
+  showView('library');
+  document.querySelectorAll('.chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.cat === cat);
+  });
+  filterTemplates('', cat);
+}
+
+function filterTemplates(query, cat) {
+  const activeCat = cat || document.querySelector('.chip.active')?.dataset?.cat || 'All';
+  const q = (query || '').toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('.tcard[data-name]').forEach(card => {
+    const name = card.dataset.name.toLowerCase();
+    const cardCat = card.dataset.cat;
+    const matchQ = !q || name.includes(q);
+    const matchC = activeCat === 'All' || cardCat === activeCat;
+    card.style.display = matchQ && matchC ? '' : 'none';
+    if (matchQ && matchC) visible++;
+  });
+  document.getElementById('template-count').textContent = visible + ' template' + (visible !== 1 ? 's' : '');
+}
+
+function showModal() { document.getElementById('modal-bg').classList.add('open'); }
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Live update iframe elements
+function getIframeDoc() {
+  const iframe = document.getElementById('template-iframe');
+  try { return iframe.contentDocument || iframe.contentWindow.document; } catch(e) { return null; }
+}
+
+function liveUpdate(elId, val) {
+  const doc = getIframeDoc();
+  if (!doc) return;
+  const el = doc.getElementById(elId);
+  if (el) el.textContent = val;
+}
+
+function liveColorUpdate(elId, val) {
+  const doc = getIframeDoc();
+  if (!doc) return;
+  const el = doc.getElementById(elId);
+  if (el) el.style.background = val;
+}
+
+function liveBgUpdate(val) {
+  const doc = getIframeDoc();
+  if (!doc) return;
+  const bgLayer = doc.getElementById('bg-layer');
+  if (bgLayer) { bgLayer.style.backgroundColor = val; bgLayer.style.backgroundImage = 'none'; }
+}
+</script>
+</body>
+</html>

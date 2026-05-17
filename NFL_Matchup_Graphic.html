@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFL Matchup Graphic</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,700;1,800;1,900&family=Barlow:wght@400;600;700&family=Anton&family=Bebas+Neue&family=Oswald:ital,wght@0,700;1,700&family=Russo+One&family=Teko:wght@700&family=Rajdhani:wght@700&family=Exo+2:ital,wght@0,800;1,800&family=Chakra+Petch:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --bg-darker: #111;
+    --cell-bg: #2a2a2a;
+    --cell-label-bg: #333;
+    --header-bg: #1c1c1c;
+    --border-color: #444;
+    --team-left-bg: #0085CA;
+    --team-right-bg: #D50A0A;
+    --header-font: 'Barlow Condensed', sans-serif;
+    --body-font: 'Barlow', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0d0d;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh; font-family: var(--body-font);
+    padding: 40px 20px; gap: 20px;
+  }
+
+  /* ── EDITOR ── */
+  .editor-ui {
+    width: 100%; max-width: 960px;
+    background: #1e1e1e; border: 1px solid #333; border-radius: 10px;
+    padding: 20px 24px; color: #ccc; font-size: 13px; font-family: var(--body-font);
+  }
+  .editor-ui h2 {
+    color: #fff; font-size: 15px; font-weight: 700; margin-bottom: 16px;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    border-bottom: 1px solid #333; padding-bottom: 10px;
+  }
+  .section-divider { border-top: 1px solid #2a2a2a; margin: 16px 0; }
+  .section-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: #555; margin-bottom: 12px;
+  }
+  .layer-block {
+    background: #242424; border: 1px solid #2e2e2e;
+    border-radius: 6px; padding: 12px 14px; margin-bottom: 10px;
+  }
+  .layer-block-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: #555; margin-bottom: 10px;
+  }
+  .lbl {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #666; display: block; margin-bottom: 4px;
+  }
+  input[type="text"], select {
+    background: #1e1e1e; border: 1px solid #3a3a3a; color: #ddd;
+    padding: 6px 9px; border-radius: 4px; font-family: var(--body-font);
+    font-size: 12px; width: 100%; margin-bottom: 8px;
+  }
+  input[type="text"]:focus, select:focus { outline: none; border-color: #0085CA; }
+  select option { background: #1e1e1e; }
+
+  /* grid helpers */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+  .col { display: flex; flex-direction: column; }
+
+  /* size slider */
+  .size-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .size-row input[type="range"] { flex: 1; accent-color: #0085CA; cursor: pointer; }
+
+  /* Bold / Italic toggle buttons */
+  .style-toggles { display: flex; gap: 6px; margin-top: 6px; margin-bottom: 2px; }
+  .tog {
+    background: #2a2a2a; border: 1px solid #3a3a3a; color: #888;
+    padding: 4px 12px; border-radius: 4px; font-size: 13px; cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    user-select: none; line-height: 1.4;
+  }
+  .tog.active { background: #0085CA; border-color: #0085CA; color: #fff; }
+  .tog-b { font-weight: 900; }
+  .tog-i { font-style: italic; font-weight: 700; }
+
+  /* Hex color input row */
+  .hex-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .hex-row input[type="color"] {
+    width: 36px; height: 30px; padding: 2px; border: 1px solid #3a3a3a;
+    border-radius: 4px; background: #1e1e1e; cursor: pointer; margin-bottom: 0;
+  }
+  .hex-row input[type="text"] {
+    width: 90px; margin-bottom: 0; font-family: monospace; letter-spacing: 0.05em;
+  }
+  .hex-swatch {
+    width: 30px; height: 30px; border-radius: 4px; border: 1px solid #3a3a3a;
+    flex-shrink: 0;
+  }
+
+  /* photo */
+  .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .photo-grid label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #666; display: flex; flex-direction: column; gap: 4px;
+  }
+  input[type="file"] {
+    background: #1e1e1e; border: 1px solid #3a3a3a; color: #aaa;
+    padding: 5px 8px; border-radius: 4px; font-size: 11px; width: 100%; cursor: pointer;
+  }
+
+  .update-btn {
+    margin-top: 16px; background: #0085CA; color: white; border: none;
+    padding: 10px 26px; border-radius: 5px; font-family: var(--header-font);
+    font-size: 14px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; cursor: pointer; transition: background 0.2s;
+  }
+  .update-btn:hover { background: #006fa8; }
+  .download-btn {
+    margin-top: 16px; margin-left: 10px; background: #1a7a3a; color: white; border: none;
+    padding: 10px 26px; border-radius: 5px; font-family: var(--header-font);
+    font-size: 14px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; cursor: pointer; transition: background 0.2s;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .download-btn:hover { background: #145e2c; }
+  .download-btn:disabled { background: #444; cursor: not-allowed; opacity: 0.7; }
+
+  /* ── GRAPHIC ── */
+  .graphic-wrapper {
+    width: 960px; background: transparent;
+    border-radius: 6px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    position: relative;
+  }
+  .main-content {
+    display: grid; grid-template-columns: 280px 1fr 280px;
+    padding: 0 20px 20px; background: transparent; position: relative; z-index: 3;
+  }
+  .player-col { display: flex; flex-direction: column; justify-content: flex-end; }
+  .player-photo-wrap {
+    width: 100%; height: 320px; overflow: hidden; border-radius: 4px;
+  }
+  .player-photo-wrap img {
+    width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block;
+  }
+  .player-photo-bg {
+    width: 100%; height: 100%; border-radius: 4px;
+    background-size: cover; background-position: top center; background-repeat: no-repeat;
+  }
+  .player-photo-placeholder {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+    font-family: var(--header-font); font-size: 14px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.15); border-radius: 4px;
+  }
+  .team-name-bar {
+    padding: 10px 14px; font-family: var(--header-font);
+    font-size: 22px; font-weight: 900; color: #fff;
+    text-transform: uppercase; letter-spacing: 0.05em; text-shadow: 2px 2px 6px rgba(0,0,0,0.75);
+    margin-top: 8px; border-radius: 3px; text-align: center;
+  }
+  .team-name-bar.left  { background: var(--team-left-bg); }
+  .team-name-bar.right { background: var(--team-right-bg); }
+  .stats-col { padding: 0 16px; display: flex; flex-direction: column; gap: 6px; }
+  .matchup-header {
+    background: var(--header-bg); border: 1px solid var(--border-color); border-radius: 3px;
+    padding: 14px 10px; text-align: center; font-family: var(--header-font);
+    font-size: 22px; font-weight: 900; color: #fff;
+    text-transform: uppercase; letter-spacing: 0.05em; text-shadow: 2px 2px 6px rgba(0,0,0,0.75);
+  }
+  .season-subheader {
+    background: var(--cell-label-bg); border: 1px solid var(--border-color); border-radius: 3px;
+    padding: 12px 10px; text-align: center; font-family: var(--header-font);
+    font-size: 18px; font-weight: 800; color: #eee;
+    text-transform: uppercase; letter-spacing: 0.1em; text-shadow: 2px 2px 6px rgba(0,0,0,0.75);
+  }
+  .stat-row { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 5px; }
+  .stat-value {
+    background: var(--cell-bg); border: 1px solid var(--border-color); border-radius: 3px;
+    padding: 11px 8px; text-align: center; font-family: var(--header-font);
+    font-size: 19px; font-weight: 800; color: #fff; text-shadow: 2px 2px 6px rgba(0,0,0,0.75);
+  }
+  .stat-label {
+    background: var(--cell-label-bg); border: 1px solid var(--border-color); border-radius: 3px;
+    padding: 11px 6px; text-align: center; font-family: var(--header-font);
+    font-size: 13px; font-weight: 700; color: #ccc;
+    text-transform: uppercase; letter-spacing: 0.05em; text-shadow: 2px 2px 6px rgba(0,0,0,0.75);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .instructions {
+    width: 960px; padding: 14px 20px; background: #1a1a1a;
+    border: 1px solid #2e2e2e; border-radius: 8px;
+    color: #666; font-size: 12px; line-height: 1.7;
+  }
+  .instructions strong { color: #999; }
+
+  /* ── BACKGROUND TYPE TABS ── */
+  .bg-type-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .bg-tab {
+    background: #2a2a2a; border: 1px solid #3a3a3a; color: #888;
+    padding: 5px 14px; border-radius: 4px; font-family: var(--body-font);
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .bg-tab.active { background: #0085CA; border-color: #0085CA; color: #fff; }
+  .bg-panel { display: none; }
+  .bg-panel.active { display: block; }
+
+  /* gradient direction */
+  .grad-dir-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; margin-bottom: 8px; }
+  .grad-dir-btn {
+    background: #2a2a2a; border: 1px solid #3a3a3a; color: #888;
+    padding: 5px 4px; border-radius: 4px; font-size: 11px; cursor: pointer;
+    text-align: center; transition: background 0.15s, color 0.15s;
+    font-family: var(--body-font); font-weight: 600; letter-spacing: 0.04em;
+  }
+  .grad-dir-btn.active { background: #0085CA; border-color: #0085CA; color: #fff; }
+
+  /* bg opacity slider */
+  .bg-opacity-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .bg-opacity-row input[type="range"] { flex: 1; accent-color: #0085CA; cursor: pointer; }
+
+  /* bg image preview */
+  .bg-img-preview {
+    width: 100%; height: 80px; border-radius: 4px; border: 1px dashed #3a3a3a;
+    background: #1a1a1a; margin-top: 8px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .bg-img-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* bg image fit options */
+  .bg-fit-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .bg-fit-btn {
+    background: #2a2a2a; border: 1px solid #3a3a3a; color: #888;
+    padding: 4px 10px; border-radius: 4px; font-size: 10px; cursor: pointer;
+    font-family: var(--body-font); font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; transition: background 0.15s, color 0.15s;
+  }
+  .bg-fit-btn.active { background: #0085CA; border-color: #0085CA; color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- ═══ EDITOR ═══ -->
+<div class="editor-ui">
+  <h2>⚡ Matchup Graphic Editor</h2>
+
+  <!-- LAYER 1: Matchup Header -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 1 · Matchup Header</div>
+    <span class="lbl">Text</span>
+    <input type="text" id="inp-header" value="PANTHERS VS BUCCANEERS WEEK 18">
+    <div class="g4" style="align-items:end;">
+      <div class="col">
+        <span class="lbl">Font</span>
+        <select id="font-header" onchange="applyFont('el-header','font-header')">
+          <option value="'Barlow Condensed',sans-serif" selected>Barlow Condensed</option>
+          <option value="'Anton',sans-serif">Anton</option>
+          <option value="'Bebas Neue',sans-serif">Bebas Neue</option>
+          <option value="'Oswald',sans-serif">Oswald</option>
+          <option value="'Russo One',sans-serif">Russo One</option>
+          <option value="'Teko',sans-serif">Teko</option>
+          <option value="'Rajdhani',sans-serif">Rajdhani</option>
+          <option value="'Exo 2',sans-serif">Exo 2</option>
+          <option value="'Chakra Petch',sans-serif">Chakra Petch</option>
+          <option value="'Helvetica Neue',Helvetica,Arial,sans-serif">Helvetica Neue</option>
+        </select>
+      </div>
+      <div class="col">
+        <span class="lbl">Size — <span id="sv-header">22</span>px</span>
+        <div class="size-row">
+          <input type="range" min="10" max="48" value="22" id="size-header"
+            oninput="document.getElementById('sv-header').textContent=this.value;applySize('el-header','size-header')">
+        </div>
+      </div>
+      <div class="col">
+        <span class="lbl">Style</span>
+        <div class="style-toggles">
+          <button class="tog tog-b" id="tog-b-header" onclick="toggleStyle('header','bold')"><b>B</b></button>
+          <button class="tog tog-i" id="tog-i-header" onclick="toggleStyle('header','italic')"><i>I</i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYER 2: Subheader -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 2 · Season Stats Subheader</div>
+    <span class="lbl">Text</span>
+    <input type="text" id="inp-subheader" value="SEASON STATS (RANK)">
+    <div class="g4" style="align-items:end;">
+      <div class="col">
+        <span class="lbl">Font</span>
+        <select id="font-subheader" onchange="applyFont('el-subheader','font-subheader')">
+          <option value="'Barlow Condensed',sans-serif" selected>Barlow Condensed</option>
+          <option value="'Anton',sans-serif">Anton</option>
+          <option value="'Bebas Neue',sans-serif">Bebas Neue</option>
+          <option value="'Oswald',sans-serif">Oswald</option>
+          <option value="'Russo One',sans-serif">Russo One</option>
+          <option value="'Teko',sans-serif">Teko</option>
+          <option value="'Rajdhani',sans-serif">Rajdhani</option>
+          <option value="'Exo 2',sans-serif">Exo 2</option>
+          <option value="'Chakra Petch',sans-serif">Chakra Petch</option>
+          <option value="'Helvetica Neue',Helvetica,Arial,sans-serif">Helvetica Neue</option>
+        </select>
+      </div>
+      <div class="col">
+        <span class="lbl">Size — <span id="sv-subheader">18</span>px</span>
+        <div class="size-row">
+          <input type="range" min="10" max="40" value="18" id="size-subheader"
+            oninput="document.getElementById('sv-subheader').textContent=this.value;applySize('el-subheader','size-subheader')">
+        </div>
+      </div>
+      <div class="col">
+        <span class="lbl">Style</span>
+        <div class="style-toggles">
+          <button class="tog tog-b" id="tog-b-subheader" onclick="toggleStyle('subheader','bold')"><b>B</b></button>
+          <button class="tog tog-i" id="tog-i-subheader" onclick="toggleStyle('subheader','italic')"><i>I</i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYER 3: Stat Rows -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 3 · Stat Rows</div>
+    <div class="g2" style="margin-bottom:10px;">
+      <!-- Stat Values -->
+      <div>
+        <span class="lbl" style="margin-bottom:6px;">Stat Values</span>
+        <div class="g2">
+          <div class="col">
+            <span class="lbl">Font</span>
+            <select id="font-statval" onchange="applyFontClass('stat-value','font-statval')">
+              <option value="'Barlow Condensed',sans-serif" selected>Barlow Condensed</option>
+              <option value="'Anton',sans-serif">Anton</option>
+              <option value="'Bebas Neue',sans-serif">Bebas Neue</option>
+              <option value="'Oswald',sans-serif">Oswald</option>
+              <option value="'Russo One',sans-serif">Russo One</option>
+              <option value="'Teko',sans-serif">Teko</option>
+              <option value="'Rajdhani',sans-serif">Rajdhani</option>
+              <option value="'Exo 2',sans-serif">Exo 2</option>
+              <option value="'Chakra Petch',sans-serif">Chakra Petch</option>
+              <option value="'Helvetica Neue',Helvetica,Arial,sans-serif">Helvetica Neue</option>
+            </select>
+          </div>
+          <div class="col">
+            <span class="lbl">Size — <span id="sv-statval">19</span>px</span>
+            <div class="size-row">
+              <input type="range" min="10" max="36" value="19" id="size-statval"
+                oninput="document.getElementById('sv-statval').textContent=this.value;applySizeClass('stat-value','size-statval')">
+            </div>
+          </div>
+        </div>
+        <div class="style-toggles">
+          <button class="tog tog-b" id="tog-b-statval" onclick="toggleStyleClass('statval','stat-value','bold')"><b>B</b></button>
+          <button class="tog tog-i" id="tog-i-statval" onclick="toggleStyleClass('statval','stat-value','italic')"><i>I</i></button>
+        </div>
+      </div>
+      <!-- Stat Labels -->
+      <div>
+        <span class="lbl" style="margin-bottom:6px;">Stat Labels</span>
+        <div class="g2">
+          <div class="col">
+            <span class="lbl">Font</span>
+            <select id="font-statlbl" onchange="applyFontClass('stat-label','font-statlbl')">
+              <option value="'Barlow Condensed',sans-serif" selected>Barlow Condensed</option>
+              <option value="'Anton',sans-serif">Anton</option>
+              <option value="'Bebas Neue',sans-serif">Bebas Neue</option>
+              <option value="'Oswald',sans-serif">Oswald</option>
+              <option value="'Russo One',sans-serif">Russo One</option>
+              <option value="'Teko',sans-serif">Teko</option>
+              <option value="'Rajdhani',sans-serif">Rajdhani</option>
+              <option value="'Exo 2',sans-serif">Exo 2</option>
+              <option value="'Chakra Petch',sans-serif">Chakra Petch</option>
+              <option value="'Helvetica Neue',Helvetica,Arial,sans-serif">Helvetica Neue</option>
+            </select>
+          </div>
+          <div class="col">
+            <span class="lbl">Size — <span id="sv-statlbl">13</span>px</span>
+            <div class="size-row">
+              <input type="range" min="8" max="24" value="13" id="size-statlbl"
+                oninput="document.getElementById('sv-statlbl').textContent=this.value;applySizeClass('stat-label','size-statlbl')">
+            </div>
+          </div>
+        </div>
+        <div class="style-toggles">
+          <button class="tog tog-b" id="tog-b-statlbl" onclick="toggleStyleClass('statlbl','stat-label','bold')"><b>B</b></button>
+          <button class="tog tog-i" id="tog-i-statlbl" onclick="toggleStyleClass('statlbl','stat-label','italic')"><i>I</i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat text values -->
+    <div class="layer-block-title" style="margin-top:8px;">Stat Text Values</div>
+    <div class="g3">
+      <div class="col"><span class="lbl">Left — Stat 1</span><input type="text" id="inp-l1" value="173.9 (26)"></div>
+      <div class="col"><span class="lbl">Label 1</span><input type="text" id="inp-label1" value="PASS YDS/GAME"></div>
+      <div class="col"><span class="lbl">Right — Stat 1</span><input type="text" id="inp-r1" value="206.4 (20)"></div>
+
+      <div class="col"><span class="lbl">Left — Stat 2</span><input type="text" id="inp-l2" value="122.4 (11)"></div>
+      <div class="col"><span class="lbl">Label 2</span><input type="text" id="inp-label2" value="RUSH YDS/GAME"></div>
+      <div class="col"><span class="lbl">Right — Stat 2</span><input type="text" id="inp-r2" value="112.9 (21)"></div>
+
+      <div class="col"><span class="lbl">Left — Stat 3</span><input type="text" id="inp-l3" value="326.6 (15)"></div>
+      <div class="col"><span class="lbl">Label 3</span><input type="text" id="inp-label3" value="YDS ALLOWED/GAME"></div>
+      <div class="col"><span class="lbl">Right — Stat 3</span><input type="text" id="inp-r3" value="340.5 (20)"></div>
+
+      <div class="col"><span class="lbl">Left — Stat 4</span><input type="text" id="inp-l4" value="20 (T-10)"></div>
+      <div class="col"><span class="lbl">Label 4</span><input type="text" id="inp-label4" value="TAKEAWAYS"></div>
+      <div class="col"><span class="lbl">Right — Stat 4</span><input type="text" id="inp-r4" value="20 (T-10)"></div>
+
+      <div class="col"><span class="lbl">Left — Stat 5</span><input type="text" id="inp-l5" value="-67 (23)"></div>
+      <div class="col"><span class="lbl">Label 5</span><input type="text" id="inp-label5" value="POINT MARGIN"></div>
+      <div class="col"><span class="lbl">Right — Stat 5</span><input type="text" id="inp-r5" value="-33 (20)"></div>
+    </div>
+  </div>
+
+  <!-- LAYER 5: Team Name Bars -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 5 · Team Name Bars</div>
+    <div class="g4" style="align-items:end; margin-bottom:10px;">
+      <div class="col">
+        <span class="lbl">Font</span>
+        <select id="font-teamname" onchange="applyFontClass('team-name-bar','font-teamname')">
+          <option value="'Barlow Condensed',sans-serif" selected>Barlow Condensed</option>
+          <option value="'Anton',sans-serif">Anton</option>
+          <option value="'Bebas Neue',sans-serif">Bebas Neue</option>
+          <option value="'Oswald',sans-serif">Oswald</option>
+          <option value="'Russo One',sans-serif">Russo One</option>
+          <option value="'Teko',sans-serif">Teko</option>
+          <option value="'Rajdhani',sans-serif">Rajdhani</option>
+          <option value="'Exo 2',sans-serif">Exo 2</option>
+          <option value="'Chakra Petch',sans-serif">Chakra Petch</option>
+          <option value="'Helvetica Neue',Helvetica,Arial,sans-serif">Helvetica Neue</option>
+        </select>
+      </div>
+      <div class="col">
+        <span class="lbl">Size — <span id="sv-teamname">22</span>px</span>
+        <div class="size-row">
+          <input type="range" min="12" max="40" value="22" id="size-teamname"
+            oninput="document.getElementById('sv-teamname').textContent=this.value;applySizeClass('team-name-bar','size-teamname')">
+        </div>
+      </div>
+      <div class="col">
+        <span class="lbl">Style</span>
+        <div class="style-toggles">
+          <button class="tog tog-b" id="tog-b-teamname" onclick="toggleStyleClass('teamname','team-name-bar','bold')"><b>B</b></button>
+          <button class="tog tog-i" id="tog-i-teamname" onclick="toggleStyleClass('teamname','team-name-bar','italic')"><i>I</i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team name text + bar color -->
+    <div class="g2">
+      <div>
+        <span class="lbl">Left Team Name</span>
+        <input type="text" id="inp-leftteam" value="PANTHERS (8-8)">
+        <span class="lbl">Left Bar Color</span>
+        <div class="hex-row">
+          <input type="color" id="color-left-pick" value="#0085CA" oninput="syncHex('left',this.value)">
+          <input type="text" id="color-left-hex" value="#0085CA" maxlength="7" placeholder="#RRGGBB"
+            oninput="syncColor('left',this.value)">
+          <div class="hex-swatch" id="swatch-left" style="background:#0085CA;"></div>
+        </div>
+      </div>
+      <div>
+        <span class="lbl">Right Team Name</span>
+        <input type="text" id="inp-rightteam" value="BUCCANEERS (7-9)">
+        <span class="lbl">Right Bar Color</span>
+        <div class="hex-row">
+          <input type="color" id="color-right-pick" value="#D50A0A" oninput="syncHex('right',this.value)">
+          <input type="text" id="color-right-hex" value="#D50A0A" maxlength="7" placeholder="#RRGGBB"
+            oninput="syncColor('right',this.value)">
+          <div class="hex-swatch" id="swatch-right" style="background:#D50A0A;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYER 6: Background -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 6 · Graphic Background</div>
+
+    <div class="bg-type-tabs">
+      <button class="bg-tab active" data-panel="solid" onclick="switchBgTab('solid')">Solid Color</button>
+      <button class="bg-tab" data-panel="gradient" onclick="switchBgTab('gradient')">Gradient</button>
+      <button class="bg-tab" data-panel="image" onclick="switchBgTab('image')">Image</button>
+      <button class="bg-tab" data-panel="none" onclick="switchBgTab('none')">None (Alpha)</button>
+    </div>
+
+    <!-- NONE -->
+    <div class="bg-panel" id="bg-panel-none">
+      <div style="padding:8px 0;font-size:11px;color:#777;line-height:1.7;">
+        No background — exports as a transparent WebP so you can overlay the graphic on any background after the fact.
+      </div>
+    </div>
+
+    <!-- SOLID -->
+    <div class="bg-panel active" id="bg-panel-solid">
+      <span class="lbl">Background Color</span>
+      <div class="hex-row">
+        <input type="color" id="bg-solid-pick" value="#111111" oninput="syncBgSolidHex(this.value)">
+        <input type="text" id="bg-solid-hex" value="#111111" maxlength="7" placeholder="#RRGGBB"
+          oninput="syncBgSolidText(this.value)">
+        <div class="hex-swatch" id="bg-solid-swatch" style="background:#111111;"></div>
+      </div>
+    </div>
+
+    <!-- GRADIENT -->
+    <div class="bg-panel" id="bg-panel-gradient">
+      <div class="g2" style="margin-bottom:8px;">
+        <div>
+          <span class="lbl">Color 1</span>
+          <div class="hex-row">
+            <input type="color" id="bg-grad1-pick" value="#0d0d0d" oninput="syncGradHex(1,this.value)">
+            <input type="text" id="bg-grad1-hex" value="#0d0d0d" maxlength="7" placeholder="#RRGGBB"
+              oninput="syncGradText(1,this.value)">
+            <div class="hex-swatch" id="bg-grad1-swatch" style="background:#0d0d0d;"></div>
+          </div>
+        </div>
+        <div>
+          <span class="lbl">Color 2</span>
+          <div class="hex-row">
+            <input type="color" id="bg-grad2-pick" value="#1e2a3a" oninput="syncGradHex(2,this.value)">
+            <input type="text" id="bg-grad2-hex" value="#1e2a3a" maxlength="7" placeholder="#RRGGBB"
+              oninput="syncGradText(2,this.value)">
+            <div class="hex-swatch" id="bg-grad2-swatch" style="background:#1e2a3a;"></div>
+          </div>
+        </div>
+      </div>
+      <span class="lbl">Direction</span>
+      <div class="grad-dir-grid">
+        <button class="grad-dir-btn active" data-dir="to bottom" onclick="setGradDir(this,'to bottom')">↓ Down</button>
+        <button class="grad-dir-btn" data-dir="to right" onclick="setGradDir(this,'to right')">→ Right</button>
+        <button class="grad-dir-btn" data-dir="135deg" onclick="setGradDir(this,'135deg')">↘ Diag</button>
+        <button class="grad-dir-btn" data-dir="to top" onclick="setGradDir(this,'to top')">↑ Up</button>
+      </div>
+    </div>
+
+    <!-- IMAGE -->
+    <div class="bg-panel" id="bg-panel-image">
+      <label>
+        <span class="lbl">Upload Background Image (PNG/JPG)</span>
+        <input type="file" id="bg-image-file" accept="image/*" onchange="loadBgImage(this)">
+      </label>
+
+      <div class="g2" style="margin-top:10px; align-items:end;">
+        <div class="col">
+          <span class="lbl">Scale — <span id="sv-bg-scale">100</span>%</span>
+          <div class="size-row">
+            <input type="range" min="50" max="300" value="100" id="size-bg-scale"
+              oninput="document.getElementById('sv-bg-scale').textContent=this.value;bgState.bgScale=parseInt(this.value);updateBgImageStyle()">
+          </div>
+        </div>
+        <div class="col">
+          <span class="lbl">Y Position — <span id="sv-bg-y">50</span>%</span>
+          <div class="size-row">
+            <input type="range" min="0" max="100" value="50" id="pos-bg-y"
+              oninput="document.getElementById('sv-bg-y').textContent=this.value;bgState.bgY=parseInt(this.value);updateBgImageStyle()">
+          </div>
+        </div>
+        <div class="col">
+          <span class="lbl">X Position — <span id="sv-bg-x">50</span>%</span>
+          <div class="size-row">
+            <input type="range" min="0" max="100" value="50" id="pos-bg-x"
+              oninput="document.getElementById('sv-bg-x').textContent=this.value;bgState.bgX=parseInt(this.value);updateBgImageStyle()">
+          </div>
+        </div>
+      </div>
+
+      <span class="lbl" style="margin-top:8px;">Overlay Opacity (darkens image)</span>
+      <div class="bg-opacity-row">
+        <input type="range" min="0" max="90" value="0" id="bg-overlay-opacity"
+          oninput="document.getElementById('bg-overlay-pct').textContent=this.value+'%';applyBgOverlay(this.value)">
+        <span id="bg-overlay-pct" style="color:#aaa;font-size:11px;min-width:34px;">0%</span>
+      </div>
+      <div class="bg-img-preview" id="bg-img-preview">No image uploaded</div>
+    </div>
+  </div>
+
+  <!-- LAYER 4: Photos -->
+
+  <div class="section-divider"></div>
+  <div class="section-label">Layer 4 · Player Photos</div>
+  <div class="photo-grid">
+    <label>Left Player Photo (PNG/JPG)
+      <input type="file" id="photo-left" accept="image/*">
+    </label>
+    <label>Right Player Photo (PNG/JPG)
+      <input type="file" id="photo-right" accept="image/*">
+    </label>
+  </div>
+
+  <button class="update-btn" onclick="updateGraphic()">▶ Update Graphic</button>
+  <button class="download-btn" id="download-btn" onclick="downloadGraphic()">⬇ Download WebP</button>
+</div>
+
+
+<!-- ═══ GRAPHIC ═══ -->
+<div class="graphic-wrapper" id="graphic-wrapper">
+  <!-- dedicated background layer — always fills wrapper regardless of content height -->
+  <div id="bg-layer" style="position:absolute;top:0;left:0;right:0;bottom:0;width:100%;min-height:100%;z-index:0;pointer-events:none;background:#111111;"></div>
+  <!-- darkening overlay, sits above bg-layer, below content -->
+  <div id="bg-overlay-layer" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;width:100%;min-height:100%;background:rgba(0,0,0,0);pointer-events:none;z-index:2;"></div>
+  <div class="main-content">
+    <div class="player-col">
+      <div class="player-photo-wrap" id="photo-left-wrap">
+        <div class="player-photo-placeholder">← Upload Left Player Photo</div>
+      </div>
+      <div class="team-name-bar left" id="el-leftteam">PANTHERS (8-8)</div>
+    </div>
+
+    <div class="stats-col">
+      <div class="matchup-header" id="el-header">PANTHERS VS BUCCANEERS WEEK 18</div>
+      <div class="season-subheader" id="el-subheader">SEASON STATS (RANK)</div>
+      <div class="stat-row">
+        <div class="stat-value" id="el-l1">173.9 (26)</div>
+        <div class="stat-label" id="el-label1">PASS YDS/GAME</div>
+        <div class="stat-value" id="el-r1">206.4 (20)</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-value" id="el-l2">122.4 (11)</div>
+        <div class="stat-label" id="el-label2">RUSH YDS/GAME</div>
+        <div class="stat-value" id="el-r2">112.9 (21)</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-value" id="el-l3">326.6 (15)</div>
+        <div class="stat-label" id="el-label3">YDS ALLOWED/GAME</div>
+        <div class="stat-value" id="el-r3">340.5 (20)</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-value" id="el-l4">20 (T-10)</div>
+        <div class="stat-label" id="el-label4">TAKEAWAYS</div>
+        <div class="stat-value" id="el-r4">20 (T-10)</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-value" id="el-l5">-67 (23)</div>
+        <div class="stat-label" id="el-label5">POINT MARGIN</div>
+        <div class="stat-value" id="el-r5">-33 (20)</div>
+      </div>
+    </div>
+
+    <div class="player-col">
+      <div class="player-photo-wrap" id="photo-right-wrap">
+        <div class="player-photo-placeholder">Upload Right Player Photo →</div>
+      </div>
+      <div class="team-name-bar right" id="el-rightteam">BUCCANEERS (7-9)</div>
+    </div>
+  </div>
+</div>
+
+<div class="instructions">
+  <strong>Background:</strong> Choose Solid Color, Gradient, or upload an Image — background image maintains aspect ratio automatically. &nbsp;|&nbsp;
+  <strong>Bold / Italic:</strong> Click B or I buttons — they toggle on/off instantly. &nbsp;|&nbsp;
+  <strong>Bar Color:</strong> Use the color picker or type a hex code (e.g. <code>#FF6600</code>) — the bar updates live. &nbsp;|&nbsp;
+  <strong>Text:</strong> Edit fields then click <strong>Update Graphic</strong>. &nbsp;|&nbsp;
+  <strong>Font &amp; Size:</strong> Dropdowns and sliders apply instantly.
+</div>
+
+<script>
+  // ── state for bold/italic toggles (single elements) ──
+  const styleState = {
+    header:    { bold: false, italic: false },
+    subheader: { bold: false, italic: false },
+  };
+  // state for class-level toggles
+  const classStyleState = {
+    statval:  { bold: false, italic: false },
+    statlbl:  { bold: false, italic: false },
+    teamname: { bold: false, italic: false },
+  };
+
+  function toggleStyle(key, prop) {
+    styleState[key][prop] = !styleState[key][prop];
+    const elId = 'el-' + key;
+    const el = document.getElementById(elId);
+    const togId = 'tog-' + prop[0] + '-' + key;
+    document.getElementById(togId).classList.toggle('active', styleState[key][prop]);
+    if (prop === 'bold')   el.style.fontWeight  = styleState[key].bold   ? '900' : '';
+    if (prop === 'italic') el.style.fontStyle   = styleState[key].italic ? 'italic' : '';
+  }
+
+  function toggleStyleClass(key, className, prop) {
+    classStyleState[key][prop] = !classStyleState[key][prop];
+    const togId = 'tog-' + prop[0] + '-' + key;
+    document.getElementById(togId).classList.toggle('active', classStyleState[key][prop]);
+    document.querySelectorAll('.' + className).forEach(el => {
+      if (prop === 'bold')   el.style.fontWeight = classStyleState[key].bold   ? '900' : '';
+      if (prop === 'italic') el.style.fontStyle  = classStyleState[key].italic ? 'italic' : '';
+    });
+  }
+
+  // ── font / size ──
+  function applyFont(elId, selectId) {
+    document.getElementById(elId).style.fontFamily = document.getElementById(selectId).value;
+  }
+  function applyFontClass(className, selectId) {
+    const font = document.getElementById(selectId).value;
+    document.querySelectorAll('.' + className).forEach(el => el.style.fontFamily = font);
+  }
+  function applySize(elId, sliderId) {
+    document.getElementById(elId).style.fontSize = document.getElementById(sliderId).value + 'px';
+  }
+  function applySizeClass(className, sliderId) {
+    const size = document.getElementById(sliderId).value + 'px';
+    document.querySelectorAll('.' + className).forEach(el => el.style.fontSize = size);
+  }
+
+  // ── team bar hex color ──
+  function isValidHex(h) { return /^#[0-9A-Fa-f]{6}$/.test(h); }
+
+  function applyBarColor(side, hex) {
+    document.getElementById('swatch-' + side).style.background = hex;
+    if (side === 'left')  document.getElementById('el-leftteam').style.background  = hex;
+    if (side === 'right') document.getElementById('el-rightteam').style.background = hex;
+  }
+
+  function syncHex(side, hex) {
+    document.getElementById('color-' + side + '-hex').value = hex;
+    document.getElementById('swatch-' + side).style.background = hex;
+    applyBarColor(side, hex);
+  }
+
+  function syncColor(side, val) {
+    if (val.length > 0 && val[0] !== '#') val = '#' + val;
+    document.getElementById('color-' + side + '-hex').value = val;
+    if (isValidHex(val)) {
+      document.getElementById('color-' + side + '-pick').value = val;
+      applyBarColor(side, val);
+    }
+  }
+
+  // ── text update ──
+  function updateGraphic() {
+    const map = {
+      'el-header':'inp-header','el-subheader':'inp-subheader',
+      'el-label1':'inp-label1','el-label2':'inp-label2','el-label3':'inp-label3',
+      'el-label4':'inp-label4','el-label5':'inp-label5',
+      'el-l1':'inp-l1','el-r1':'inp-r1',
+      'el-l2':'inp-l2','el-r2':'inp-r2',
+      'el-l3':'inp-l3','el-r3':'inp-r3',
+      'el-l4':'inp-l4','el-r4':'inp-r4',
+      'el-l5':'inp-l5','el-r5':'inp-r5',
+      'el-leftteam':'inp-leftteam','el-rightteam':'inp-rightteam',
+    };
+    for (const [elId, inpId] of Object.entries(map)) {
+      document.getElementById(elId).textContent = document.getElementById(inpId).value;
+    }
+  }
+
+  // ── photos ──
+  function handlePhoto(inputId, wrapId) {
+    document.getElementById(inputId).addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      const wrap = document.getElementById(wrapId);
+      const img = new Image();
+      img.onload = function() {
+        const wW = wrap.offsetWidth;
+        const wH = wrap.offsetHeight;
+        const iW = img.naturalWidth;
+        const iH = img.naturalHeight;
+        const scale = Math.max(wW / iW, wH / iH);
+        const dW = iW * scale;
+        const dH = iH * scale;
+        const left = (wW - dW) / 2;
+        const top = 0;
+        wrap.innerHTML = `<img src="${url}" style="position:absolute;width:${dW}px;height:${dH}px;left:${left}px;top:${top}px;">`;
+        wrap.style.position = 'relative';
+        wrap.style.overflow = 'hidden';
+      };
+      img.src = url;
+    });
+  }
+  handlePhoto('photo-left',  'photo-left-wrap');
+  handlePhoto('photo-right', 'photo-right-wrap');
+
+  // ════════════════════════════════════════
+  // ── BACKGROUND LOGIC ──
+  // ════════════════════════════════════════
+
+  const bgState = {
+    type: 'solid',
+    solidColor: '#111111',
+    gradColor1: '#0d0d0d',
+    gradColor2: '#1e2a3a',
+    gradDir: 'to bottom',
+    imageDataURL: null,
+    imgNatW: 1, imgNatH: 1,
+    bgScale: 100,
+    bgX: 50, bgY: 50,
+    overlayOpacity: 0,
+  };
+
+  const bgLayer = document.getElementById('bg-layer');
+
+  function applyBgToWrapper() {
+    if (bgState.type === 'solid') {
+      const old = bgLayer.querySelector('img.bg-img-el');
+      if (old) old.remove();
+      bgLayer.style.backgroundImage = 'none';
+      bgLayer.style.backgroundColor = bgState.solidColor;
+    } else if (bgState.type === 'gradient') {
+      const old = bgLayer.querySelector('img.bg-img-el');
+      if (old) old.remove();
+      bgLayer.style.backgroundColor = '';
+      bgLayer.style.backgroundImage = `linear-gradient(${bgState.gradDir}, ${bgState.gradColor1}, ${bgState.gradColor2})`;
+      bgLayer.style.backgroundSize = '';
+      bgLayer.style.backgroundPosition = '';
+      bgLayer.style.backgroundRepeat = '';
+    } else if (bgState.type === 'image') {
+      updateBgImageStyle();
+    } else if (bgState.type === 'none') {
+      const old = bgLayer.querySelector('img.bg-img-el');
+      if (old) old.remove();
+      bgLayer.style.backgroundImage = 'none';
+      bgLayer.style.backgroundColor = 'transparent';
+      // Also visually clear the cell backgrounds in preview so user sees the keyed look
+      document.getElementById('graphic-wrapper').style.background = 'repeating-conic-gradient(#333 0% 25%, #222 0% 50%) 0 0 / 20px 20px';
+    }
+  }
+
+  function updateBgImageStyle() {
+    if (!bgState.imageDataURL) return;
+
+    bgLayer.style.backgroundImage = 'none';
+    bgLayer.style.backgroundColor = '#111';
+    bgLayer.style.overflow = 'hidden';
+    bgLayer.style.position = 'absolute';
+
+    let img = bgLayer.querySelector('img.bg-img-el');
+    if (!img) {
+      img = document.createElement('img');
+      img.className = 'bg-img-el';
+      img.style.position = 'absolute';
+      img.style.pointerEvents = 'none';
+      bgLayer.insertBefore(img, bgLayer.firstChild);
+    }
+    img.src = bgState.imageDataURL;
+
+    const wrapper  = document.getElementById('graphic-wrapper');
+    const layerW   = wrapper.offsetWidth  || 960;
+    const layerH   = wrapper.offsetHeight || 500;
+    const natAR    = bgState.imgNatW / bgState.imgNatH;
+    const layerAR  = layerW / layerH;
+
+    // Cover base size
+    let baseW, baseH;
+    if (natAR > layerAR) { baseH = layerH; baseW = layerH * natAR; }
+    else                  { baseW = layerW; baseH = layerW / natAR; }
+
+    const scale = bgState.bgScale / 100;
+    const w = baseW * scale;
+    const h = baseH * scale;
+
+    // Pan: center image on container, then shift by ±half the image size.
+    // 50% = centered, 0% = shifted fully left/up, 100% = shifted fully right/down.
+    // Range = full image dimension so sliders always have meaningful travel.
+    const centerX = (layerW - w) / 2;
+    const centerY = (layerH - h) / 2;
+    const panX = (bgState.bgX - 50) / 50;  // -1 to +1
+    const panY = (bgState.bgY - 50) / 50;
+    const left = centerX + panX * (w / 2);
+    const top  = centerY + panY * (h / 2);
+
+    img.style.width     = w + 'px';
+    img.style.height    = h + 'px';
+    img.style.left      = left + 'px';
+    img.style.top       = top  + 'px';
+    img.style.objectFit = 'fill';
+  }
+
+  // ── Width/Height slider wrappers (kept for download compat, now use scale) ──
+  function onBgSizeW(val) {
+    bgState.bgScale = parseInt(val);
+    document.getElementById('sv-bg-scale').value = val;
+    document.getElementById('sv-bg-scale').textContent = val;
+    updateBgImageStyle();
+  }
+  function onBgSizeH(val) { onBgSizeW(val); }
+
+  // Tab switching
+  function switchBgTab(type) {
+    bgState.type = type;
+    document.querySelectorAll('.bg-tab').forEach(t => t.classList.toggle('active', t.dataset.panel === type));
+    document.querySelectorAll('.bg-panel').forEach(p => p.classList.toggle('active', p.id === 'bg-panel-' + type));
+    // Restore wrapper background when leaving none tab
+    if (type !== 'none') {
+      document.getElementById('graphic-wrapper').style.background = 'transparent';
+    }
+    applyBgToWrapper();
+  }
+
+  // ── Keep bg-layer height in sync with wrapper ──
+  function syncBgLayerHeight() {
+    const wrapper = document.getElementById('graphic-wrapper');
+    const h = wrapper.scrollHeight + 'px';
+    document.getElementById('bg-layer').style.height = h;
+    document.getElementById('bg-overlay-layer').style.height = h;
+  }
+  // Run on load and whenever wrapper content changes
+  const _wrapperRO = new ResizeObserver(syncBgLayerHeight);
+  _wrapperRO.observe(document.getElementById('graphic-wrapper'));
+  syncBgLayerHeight();
+
+  // ── SOLID ──
+  function syncBgSolidHex(hex) {
+    bgState.solidColor = hex;
+    document.getElementById('bg-solid-hex').value = hex;
+    document.getElementById('bg-solid-swatch').style.background = hex;
+    applyBgToWrapper();
+  }
+  function syncBgSolidText(val) {
+    if (val.length > 0 && val[0] !== '#') val = '#' + val;
+    document.getElementById('bg-solid-hex').value = val;
+    if (isValidHex(val)) {
+      bgState.solidColor = val;
+      document.getElementById('bg-solid-pick').value = val;
+      document.getElementById('bg-solid-swatch').style.background = val;
+      applyBgToWrapper();
+    }
+  }
+
+  // ── GRADIENT ──
+  function syncGradHex(num, hex) {
+    if (num === 1) { bgState.gradColor1 = hex; document.getElementById('bg-grad1-hex').value = hex; document.getElementById('bg-grad1-swatch').style.background = hex; }
+    else           { bgState.gradColor2 = hex; document.getElementById('bg-grad2-hex').value = hex; document.getElementById('bg-grad2-swatch').style.background = hex; }
+    applyBgToWrapper();
+  }
+  function syncGradText(num, val) {
+    if (val.length > 0 && val[0] !== '#') val = '#' + val;
+    const hexId = 'bg-grad' + num + '-hex';
+    document.getElementById(hexId).value = val;
+    if (isValidHex(val)) {
+      const pickId = 'bg-grad' + num + '-pick';
+      const swatchId = 'bg-grad' + num + '-swatch';
+      document.getElementById(pickId).value = val;
+      document.getElementById(swatchId).style.background = val;
+      if (num === 1) bgState.gradColor1 = val;
+      else bgState.gradColor2 = val;
+      applyBgToWrapper();
+    }
+  }
+  function setGradDir(btn, dir) {
+    bgState.gradDir = dir;
+    document.querySelectorAll('.grad-dir-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyBgToWrapper();
+  }
+
+  // ── IMAGE ──
+  function loadBgImage(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      bgState.imageDataURL = e.target.result;
+      const img = new Image();
+      img.onload = function() {
+        bgState.imgNatW = img.naturalWidth;
+        bgState.imgNatH = img.naturalHeight;
+        bgState.bgScale = 100; bgState.bgX = 50; bgState.bgY = 50;
+        document.getElementById('size-bg-scale').value = 100;
+        document.getElementById('sv-bg-scale').textContent = 100;
+        document.getElementById('pos-bg-x').value = 50;
+        document.getElementById('sv-bg-x').textContent = 50;
+        document.getElementById('pos-bg-y').value = 50;
+        document.getElementById('sv-bg-y').textContent = 50;
+        switchBgTab('image');
+        updateBgImageStyle();
+      };
+      img.src = e.target.result;
+      const preview = document.getElementById('bg-img-preview');
+      preview.innerHTML = `<img src="${e.target.result}" alt="bg preview">`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function applyBgOverlay(val) {
+    bgState.overlayOpacity = parseInt(val);
+    const layer = document.getElementById('bg-overlay-layer');
+    if (bgState.overlayOpacity > 0) {
+      layer.style.display = 'block';
+      layer.style.background = `rgba(0,0,0,${bgState.overlayOpacity / 100})`;
+    } else {
+      layer.style.display = 'none';
+    }
+  }
+
+  // ── Download ──
+  async function downloadGraphic() {
+    const btn = document.getElementById('download-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Rendering…';
+
+    const graphic = document.getElementById('graphic-wrapper');
+    const SCALE = 2;
+    const QUALITY = 0.85; // WebP quality — high enough for broadcast graphics
+
+    const finish = (blob, label) => {
+      const kb = Math.round(blob.size / 1024);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'matchup_graphic.webp'; a.click();
+      URL.revokeObjectURL(url);
+      btn.disabled = false;
+      btn.innerHTML = `⬇ Download WebP — last: ${kb} KB`;
+    };
+
+    try {
+      // ── IMAGE background ──
+      if (bgState.type === 'image' && bgState.imageDataURL) {
+        const htmlCanvas = await html2canvas(graphic, {
+          scale: SCALE, useCORS: true, allowTaint: true,
+          backgroundColor: null, logging: false,
+        });
+        const gW = htmlCanvas.width, gH = htmlCanvas.height;
+        const out = document.createElement('canvas');
+        out.width = gW; out.height = gH;
+        const ctx = out.getContext('2d');
+
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, gW, gH);
+
+        const bgImg = new Image();
+        await new Promise((res, rej) => { bgImg.onload = res; bgImg.onerror = rej; bgImg.src = bgState.imageDataURL; });
+
+        const natAR = bgState.imgNatW / bgState.imgNatH;
+        const layerAR = gW / gH;
+        let baseW, baseH;
+        if (natAR > layerAR) { baseH = gH; baseW = gH * natAR; }
+        else                  { baseW = gW; baseH = gW / natAR; }
+        const scale = bgState.bgScale / 100;
+        const drawW = baseW * scale, drawH = baseH * scale;
+        const centerX = (gW - drawW) / 2, centerY = (gH - drawH) / 2;
+        const panX = (bgState.bgX - 50) / 50, panY = (bgState.bgY - 50) / 50;
+        ctx.drawImage(bgImg, centerX + panX * (drawW / 2), centerY + panY * (drawH / 2), drawW, drawH);
+
+        if (bgState.overlayOpacity > 0) {
+          ctx.fillStyle = `rgba(0,0,0,${bgState.overlayOpacity / 100})`;
+          ctx.fillRect(0, 0, gW, gH);
+        }
+        ctx.drawImage(htmlCanvas, 0, 0);
+        out.toBlob(b => finish(b), 'image/webp', QUALITY);
+
+      // ── GRADIENT background ──
+      } else if (bgState.type === 'gradient') {
+        const canvas = await html2canvas(graphic, {
+          scale: SCALE, useCORS: true, allowTaint: true,
+          backgroundColor: null, logging: false,
+        });
+        const gW = canvas.width, gH = canvas.height;
+        const out = document.createElement('canvas');
+        out.width = gW; out.height = gH;
+        const ctx = out.getContext('2d');
+        const dir = bgState.gradDir;
+        let grad;
+        if (dir === 'to bottom')     grad = ctx.createLinearGradient(0, 0, 0, gH);
+        else if (dir === 'to right') grad = ctx.createLinearGradient(0, 0, gW, 0);
+        else if (dir === 'to top')   grad = ctx.createLinearGradient(0, gH, 0, 0);
+        else                         grad = ctx.createLinearGradient(0, 0, gW, gH);
+        grad.addColorStop(0, bgState.gradColor1);
+        grad.addColorStop(1, bgState.gradColor2);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, gW, gH);
+        ctx.drawImage(canvas, 0, 0);
+        out.toBlob(b => finish(b), 'image/webp', QUALITY);
+
+      // ── NONE — fully keyed alpha export ──
+      } else if (bgState.type === 'none') {
+        // Inject a temporary style that strips all backgrounds/borders from graphic elements
+        const alphaStyle = document.createElement('style');
+        alphaStyle.id = 'alpha-export-style';
+        alphaStyle.textContent = `
+          #graphic-wrapper { box-shadow: none !important; background: transparent !important; overflow: visible !important; }
+          #bg-layer { background: transparent !important; background-image: none !important; }
+          #bg-overlay-layer { display: none !important; }
+          .main-content { background: transparent !important; }
+          .stats-col { background: transparent !important; }
+          .player-photo-placeholder { background: transparent !important; border-color: transparent !important; }
+        `;
+        document.head.appendChild(alphaStyle);
+
+        const canvas = await html2canvas(graphic, {
+          scale: SCALE, useCORS: true, allowTaint: true,
+          backgroundColor: null, logging: false,
+        });
+
+        document.head.removeChild(alphaStyle);
+        canvas.toBlob(b => finish(b), 'image/webp', QUALITY);
+
+      // ── SOLID background ──
+      } else {
+        const canvas = await html2canvas(graphic, {
+          scale: SCALE, useCORS: true, allowTaint: true,
+          backgroundColor: bgState.solidColor, logging: false,
+        });
+        canvas.toBlob(b => finish(b), 'image/webp', QUALITY);
+      }
+
+    } catch (err) {
+      console.error('Download failed:', err);
+      alert('Export failed: ' + err.message);
+      btn.disabled = false;
+      btn.innerHTML = '⬇ Download WebP';
+    }
+  }
+</script>
+</body>
+</html>

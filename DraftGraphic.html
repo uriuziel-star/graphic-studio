@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFL Spotlight – Draft/List Graphic</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,700;1,800;1,900&family=Barlow:wght@400;600;700&family=Anton&family=Bebas+Neue&family=Oswald:ital,wght@0,700;1,700&family=Russo+One&family=Teko:wght@700&family=Rajdhani:wght@700&family=Exo+2:ital,wght@0,800;1,800&family=Chakra+Petch:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --body-font:'Barlow',sans-serif;
+  --header-font:'Barlow Condensed',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:#0d0d0d;font-family:var(--body-font);
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100vh;padding:30px 20px;gap:18px;color:#ccc;
+}
+
+/* ── EDITOR ── */
+.editor-ui{
+  width:100%;max-width:1200px;
+  background:#1e1e1e;border:1px solid #333;border-radius:10px;
+  padding:18px 22px;font-size:13px;
+}
+.editor-ui h2{color:#fff;font-size:14px;font-weight:700;margin-bottom:14px;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #333;padding-bottom:9px;}
+.layer-block{background:#242424;border:1px solid #2e2e2e;border-radius:6px;padding:12px 14px;margin-bottom:10px;}
+.layer-block-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:10px;}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#666;display:block;margin-bottom:4px;}
+input[type="text"],select{background:#1e1e1e;border:1px solid #3a3a3a;color:#ddd;padding:6px 9px;border-radius:4px;font-family:var(--body-font);font-size:12px;width:100%;margin-bottom:8px;}
+input[type="text"]:focus,select:focus{outline:none;border-color:#0085CA;}
+select option{background:#1e1e1e;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;}
+.col{display:flex;flex-direction:column;}
+.size-row{display:flex;align-items:center;gap:6px;margin-top:4px;}
+.size-row input[type="range"]{flex:1;accent-color:#0085CA;cursor:pointer;}
+.style-toggles{display:flex;gap:6px;margin-top:6px;}
+.tog{background:#2a2a2a;border:1px solid #3a3a3a;color:#888;padding:4px 12px;border-radius:4px;font-size:13px;cursor:pointer;transition:background .15s,color .15s;user-select:none;line-height:1.4;}
+.tog.active{background:#0085CA;border-color:#0085CA;color:#fff;}
+.tog-b{font-weight:900;}.tog-i{font-style:italic;font-weight:700;}
+.hex-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.hex-row input[type="color"]{width:36px;height:30px;padding:2px;border:1px solid #3a3a3a;border-radius:4px;background:#1e1e1e;cursor:pointer;margin-bottom:0;}
+.hex-row input[type="text"]{width:90px;margin-bottom:0;font-family:monospace;letter-spacing:.05em;}
+.hex-swatch{width:30px;height:30px;border-radius:4px;border:1px solid #3a3a3a;flex-shrink:0;}
+input[type="file"]{background:#1e1e1e;border:1px solid #3a3a3a;color:#aaa;padding:5px 8px;border-radius:4px;font-size:11px;width:100%;cursor:pointer;}
+.update-btn{margin-top:14px;background:#0085CA;color:white;border:none;padding:9px 22px;border-radius:5px;font-family:var(--header-font);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .2s;}
+.update-btn:hover{background:#006fa8;}
+.download-btn{margin-top:14px;margin-left:10px;background:#1a7a3a;color:white;border:none;padding:9px 22px;border-radius:5px;font-family:var(--header-font);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .2s;display:inline-flex;align-items:center;gap:6px;}
+.download-btn:hover{background:#145e2c;}
+.download-btn:disabled{background:#444;cursor:not-allowed;opacity:.7;}
+
+/* row editor for bullets */
+.row-editor{display:grid;grid-template-columns:44px 1fr auto;gap:6px;align-items:center;margin-bottom:8px;}
+.row-logo-preview{width:36px;height:36px;border:1px solid #3a3a3a;border-radius:4px;overflow:hidden;background:#1a1a1a;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.row-logo-preview img{width:100%;height:100%;object-fit:contain;}
+.row-logo-preview span{font-size:8px;color:#555;text-align:center;}
+.highlight-toggle{background:#2a2a2a;border:1px solid #3a3a3a;color:#888;padding:4px 8px;border-radius:4px;font-size:10px;cursor:pointer;white-space:nowrap;transition:background .15s;}
+.highlight-toggle.on{background:#e09000;border-color:#e09000;color:#fff;}
+.vis-toggle{background:#2a2a2a;border:1px solid #3a3a3a;color:#888;padding:4px 8px;border-radius:4px;font-size:10px;cursor:pointer;white-space:nowrap;}
+.vis-toggle.hidden{opacity:.4;}
+
+/* ── GRAPHIC WRAPPER ── */
+.graphic-wrapper{
+  width: 100%;
+  max-width: 1200px;
+  background:transparent;
+  border-radius:4px;
+  box-shadow:0 20px 60px rgba(0,0,0,.7);
+  position:relative;
+  overflow:visible;
+}
+
+/* ── GRAPHIC ITSELF: 1920×1080, scaled to fit viewport ── */
+#main-graphic{
+  width:1920px;height:1080px;
+  position:relative;
+  font-family:var(--header-font);
+  transform-origin: top left;
+  /* JS will set the scale */
+}
+.graphic-scaler{
+  /* JS sets width/height to match scaled size */
+  position:relative;
+  overflow:visible;
+}
+
+/* background layers */
+#bg-dark{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,#111 0%,#1a1a1a 40%,#0f0f0f 100%);
+  z-index:0;
+}
+#bg-overlay{
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  /* subtle vignette */
+  background:radial-gradient(ellipse at 60% 50%,transparent 30%,rgba(0,0,0,.5) 100%);
+}
+
+/* NFL Spotlight logo bar at top */
+#logo-bar{
+  position:absolute;top:0;left:0;right:0;
+  height:110px;z-index:10;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 100%);
+}
+#logo-bar-content{
+  text-align:center;
+}
+.lb-nfl{font-family:var(--header-font);font-size:24px;font-weight:700;color:#aaa;letter-spacing:.35em;text-transform:uppercase;}
+.lb-spotlight{font-family:var(--header-font);font-size:72px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.08em;line-height:1;}
+.lb-sub{font-family:var(--header-font);font-size:24px;font-weight:600;color:#999;letter-spacing:.25em;text-transform:uppercase;margin-top:2px;}
+
+/* bottom accent bar */
+#bottom-bar{
+  position:absolute;bottom:0;left:0;right:0;height:40px;
+  z-index:10;
+  background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.8) 100%);
+  border-top:3px solid #333;
+}
+
+/* photo pane — top/bottom set by JS to align with title top and last bullet bottom */
+#photo-pane{
+  position:absolute;
+  right:40px;
+  width:700px;
+  z-index:2;
+  overflow:visible;
+}
+/* photo border frame — sits between pane edge and img */
+#photo-border-frame {
+  position:absolute;
+  inset:0;
+  border-radius:0px; /* JS controls */
+  overflow:hidden;
+  /* border set by JS */
+}
+#photo-bg{
+  position:absolute;inset:0;
+  overflow:hidden;
+}
+#photo-img {
+  position:absolute;
+  object-fit:cover;
+  min-width:100%;
+  min-height:100%;
+}
+/* NO left vignette — photo shows fully */
+
+/* list content pane */
+#list-pane{
+  position:absolute;
+  left:0;top:100px;bottom:40px;
+  width:1020px;
+  z-index:5;
+  padding:40px 60px 40px 70px;
+  display:flex;flex-direction:column;justify-content:center;
+}
+
+/* title */
+#graphic-title{
+  font-family:var(--header-font);
+  font-size:96px;font-weight:900;
+  color:#fff;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  line-height:1;
+  margin-bottom:36px;
+  text-shadow:2px 3px 10px rgba(0,0,0,.8);
+}
+
+/* rows */
+.list-row{
+  display:flex;align-items:center;
+  gap:28px;
+  margin-bottom:18px;
+  opacity:1;transition:opacity .2s;
+}
+.list-row.hidden-row{display:none;}
+.row-icon{
+  width:76px;height:76px;
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.row-icon img{max-width:76px;max-height:76px;object-fit:contain;}
+.row-icon-placeholder{
+  width:64px;height:64px;border-radius:50%;
+  border:3px dashed rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;color:rgba(255,255,255,.2);
+}
+.row-text{
+  font-family:var(--header-font);
+  font-size:68px;font-weight:900;
+  color:#fff;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  line-height:1;
+  text-shadow:1px 2px 8px rgba(0,0,0,.7);
+  white-space:nowrap;
+}
+.row-text.highlighted{color:#e8a000;}
+
+/* size/pos controls */
+.photo-control-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.photo-control-row input[type="range"]{flex:1;accent-color:#0085CA;}
+
+/* bg tabs */
+.bg-type-tabs{display:flex;gap:6px;margin-bottom:12px;}
+.bg-tab{background:#2a2a2a;border:1px solid #3a3a3a;color:#888;padding:5px 14px;border-radius:4px;font-family:var(--body-font);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+.bg-tab.active{background:#0085CA;border-color:#0085CA;color:#fff;}
+.bg-panel{display:none;}
+.bg-panel.active{display:block;}
+.grad-dir-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px;}
+.grad-dir-btn{background:#2a2a2a;border:1px solid #3a3a3a;color:#888;padding:5px 4px;border-radius:4px;font-size:11px;cursor:pointer;text-align:center;transition:background .15s,color .15s;font-family:var(--body-font);font-weight:600;}
+.grad-dir-btn.active{background:#0085CA;border-color:#0085CA;color:#fff;}
+.bg-img-preview{width:100%;height:70px;border-radius:4px;border:1px dashed #3a3a3a;background:#1a1a1a;margin-top:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#555;font-size:11px;text-transform:uppercase;}
+.bg-img-preview img{width:100%;height:100%;object-fit:cover;display:block;}
+</style>
+</head>
+<body>
+
+<!-- EDITOR -->
+<div class="editor-ui">
+  <h2>📋 Draft / List Graphic Editor</h2>
+
+  <!-- Layer 0: Branding -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 0 · Branding</div>
+    <div class="g3">
+      <div class="col"><span class="lbl">Top Label</span><input type="text" id="inp-nfl" value="NFL"></div>
+      <div class="col"><span class="lbl">Main Title</span><input type="text" id="inp-spotlight" value="SPOTLIGHT"></div>
+      <div class="col"><span class="lbl">Subtitle</span><input type="text" id="inp-sub" value="with Ari Meirov · 33rdTeam"></div>
+    </div>
+  </div>
+
+  <!-- Layer 1: Graphic Title -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 1 · Graphic Title</div>
+    <input type="text" id="inp-title" value="2017 NFL DRAFT">
+    <div class="g4" style="align-items:end;">
+      <div class="col">
+        <span class="lbl">Font</span>
+        <select id="font-title" onchange="applyTitleStyle()">
+          <option value="'Barlow Condensed',sans-serif" selected>Barlow Condensed</option>
+          <option value="'Anton',sans-serif">Anton</option>
+          <option value="'Bebas Neue',sans-serif">Bebas Neue</option>
+          <option value="'Oswald',sans-serif">Oswald</option>
+          <option value="'Russo One',sans-serif">Russo One</option>
+          <option value="'Teko',sans-serif">Teko</option>
+          <option value="'Rajdhani',sans-serif">Rajdhani</option>
+          <option value="'Exo 2',sans-serif">Exo 2</option>
+          <option value="'Chakra Petch',sans-serif">Chakra Petch</option>
+          <option value="'Helvetica Neue',Helvetica,Arial,sans-serif">Helvetica Neue</option>
+        </select>
+      </div>
+      <div class="col">
+        <span class="lbl">Size — <span id="sv-title">96</span>px</span>
+        <div class="size-row">
+          <input type="range" min="40" max="160" value="96" id="size-title"
+            oninput="document.getElementById('sv-title').textContent=this.value;applyTitleStyle()">
+        </div>
+      </div>
+      <div class="col">
+        <span class="lbl">Style</span>
+        <div class="style-toggles">
+          <button class="tog tog-b active" id="tog-b-title" onclick="toggleTitle('bold')"><b>B</b></button>
+          <button class="tog tog-i" id="tog-i-title" onclick="toggleTitle('italic')"><i>I</i></button>
+        </div>
+        <span class="lbl" style="margin-top:8px;">Align</span>
+        <div class="style-toggles" style="margin-top:0;">
+          <button class="tog active" id="align-left-btn" onclick="setTitleAlign('left')" title="Left">&#9612;</button>
+          <button class="tog" id="align-center-btn" onclick="setTitleAlign('center')" title="Center">&#9611;</button>
+        </div>
+      </div>
+      <div class="col">
+        <span class="lbl">Color</span>
+        <div class="hex-row" style="margin-top:0;">
+          <input type="color" id="color-title-pick" value="#ffffff" oninput="syncTitleColor(this.value)">
+          <input type="text" id="color-title-hex" value="#ffffff" maxlength="7" oninput="syncTitleColorTxt(this.value)">
+          <div class="hex-swatch" id="swatch-title" style="background:#ffffff;border-color:#555;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 2: List Rows -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 2 · List Rows — click logo icon to upload, click text to highlight</div>
+    <div class="g4" style="align-items:end;margin-bottom:10px;">
+      <div class="col">
+        <span class="lbl">Row Font</span>
+        <select id="font-rows" onchange="applyRowFont()">
+          <option value="'Barlow Condensed',sans-serif" selected>Barlow Condensed</option>
+          <option value="'Anton',sans-serif">Anton</option>
+          <option value="'Bebas Neue',sans-serif">Bebas Neue</option>
+          <option value="'Oswald',sans-serif">Oswald</option>
+          <option value="'Russo One',sans-serif">Russo One</option>
+          <option value="'Teko',sans-serif">Teko</option>
+          <option value="'Rajdhani',sans-serif">Rajdhani</option>
+          <option value="'Exo 2',sans-serif">Exo 2</option>
+          <option value="'Chakra Petch',sans-serif">Chakra Petch</option>
+          <option value="'Helvetica Neue',Helvetica,Arial,sans-serif">Helvetica Neue</option>
+        </select>
+      </div>
+      <div class="col">
+        <span class="lbl">Text Size — <span id="sv-rows">68</span>px</span>
+        <div class="size-row">
+          <input type="range" min="28" max="100" value="68" id="size-rows"
+            oninput="document.getElementById('sv-rows').textContent=this.value;applyRowSize()">
+        </div>
+      </div>
+      <div class="col">
+        <span class="lbl">Logo Size — <span id="sv-logo-size">76</span>px</span>
+        <div class="size-row">
+          <input type="range" min="20" max="200" value="76" id="size-logo-icons"
+            oninput="document.getElementById('sv-logo-size').textContent=this.value;renderGraphicRows()">
+        </div>
+      </div>
+      <div class="col">
+        <span class="lbl">Highlight Color</span>
+        <div class="hex-row" style="margin-top:0;">
+          <input type="color" id="highlight-color-pick" value="#e8a000" oninput="syncHighlightColor(this.value)">
+          <input type="text" id="highlight-color-hex" value="#e8a000" maxlength="7" oninput="syncHighlightColorTxt(this.value)">
+          <div class="hex-swatch" id="swatch-highlight" style="background:#e8a000;"></div>
+        </div>
+      </div>
+      <div class="col">
+        <span class="lbl">Default Text Color</span>
+        <div class="hex-row" style="margin-top:0;">
+          <input type="color" id="row-color-pick" value="#ffffff" oninput="syncRowColor(this.value)">
+          <input type="text" id="row-color-hex" value="#ffffff" maxlength="7" oninput="syncRowColorTxt(this.value)">
+          <div class="hex-swatch" id="swatch-row" style="background:#ffffff;border-color:#555;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- row editors -->
+    <div id="rows-editor"></div>
+    <button class="tog" style="margin-top:6px;font-size:10px;padding:4px 12px;" onclick="addRow()">+ Add Row</button>
+  </div>
+
+  <!-- Layer 3: Photo -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 3 · Photo (right side)</div>
+    <input type="file" id="photo-file" accept="image/*" onchange="loadPhoto(this)">
+
+    <div class="g3" style="margin-top:10px;align-items:end;">
+      <div class="col">
+        <span class="lbl">Scale — <span id="sv-photo-scale">100</span>%</span>
+        <div class="size-row"><input type="range" min="50" max="200" value="100" id="size-photo-scale" oninput="onPhotoScale(this.value)"></div>
+      </div>
+      <div class="col">
+        <span class="lbl">X Position — <span id="sv-photo-x">50</span>%</span>
+        <div class="size-row"><input type="range" min="0" max="100" value="50" id="pos-photo-x" oninput="document.getElementById('sv-photo-x').textContent=this.value;photoState.x=parseInt(this.value);updatePhotoStyle()"></div>
+      </div>
+      <div class="col">
+        <span class="lbl">Y Position — <span id="sv-photo-y">50</span>%</span>
+        <div class="size-row"><input type="range" min="0" max="100" value="50" id="pos-photo-y" oninput="document.getElementById('sv-photo-y').textContent=this.value;photoState.y=parseInt(this.value);updatePhotoStyle()"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;border-top:1px solid #2e2e2e;padding-top:10px;">
+      <div class="layer-block-title" style="margin-bottom:8px;">Photo Border</div>
+      <div class="g3" style="align-items:end;">
+        <div class="col">
+          <span class="lbl">Thickness — <span id="sv-border-w">0</span>px</span>
+          <div class="size-row"><input type="range" min="0" max="40" value="0" id="size-border-w"
+            oninput="document.getElementById('sv-border-w').textContent=this.value;applyPhotoBorder()"></div>
+        </div>
+        <div class="col">
+          <span class="lbl">Corner Radius — <span id="sv-border-r">16</span>px</span>
+          <div class="size-row"><input type="range" min="0" max="80" value="16" id="size-border-r"
+            oninput="document.getElementById('sv-border-r').textContent=this.value;applyPhotoBorder()"></div>
+        </div>
+        <div class="col">
+          <span class="lbl">Border Color</span>
+          <div class="hex-row" style="margin-top:0;">
+            <input type="color" id="border-color-pick" value="#ffffff" oninput="syncBorderColor(this.value)">
+            <input type="text" id="border-color-hex" value="#ffffff" maxlength="7" oninput="syncBorderColorTxt(this.value)">
+            <div class="hex-swatch" id="swatch-border" style="background:#ffffff;border-color:#555;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 4: Background -->
+  <div class="layer-block">
+    <div class="layer-block-title">Layer 4 · Background</div>
+    <div class="bg-type-tabs">
+      <button class="bg-tab active" data-panel="solid" onclick="switchBgTab('solid')">Solid</button>
+      <button class="bg-tab" data-panel="gradient" onclick="switchBgTab('gradient')">Gradient</button>
+      <button class="bg-tab" data-panel="image" onclick="switchBgTab('image')">Image</button>
+    </div>
+
+    <!-- SOLID -->
+    <div class="bg-panel active" id="bg-panel-solid">
+      <span class="lbl">Color</span>
+      <div class="hex-row">
+        <input type="color" id="bg-solid-pick" value="#111111" oninput="syncBgSolid(this.value)">
+        <input type="text" id="bg-solid-hex" value="#111111" maxlength="7" oninput="syncBgSolidTxt(this.value)">
+        <div class="hex-swatch" id="bg-solid-swatch" style="background:#111111;"></div>
+      </div>
+    </div>
+
+    <!-- GRADIENT -->
+    <div class="bg-panel" id="bg-panel-gradient">
+      <div class="g2" style="margin-bottom:8px;">
+        <div>
+          <span class="lbl">Color 1</span>
+          <div class="hex-row">
+            <input type="color" id="bg-grad1-pick" value="#0d0d0d" oninput="syncBgGrad(1,this.value)">
+            <input type="text" id="bg-grad1-hex" value="#0d0d0d" maxlength="7" oninput="syncBgGradTxt(1,this.value)">
+            <div class="hex-swatch" id="bg-grad1-swatch" style="background:#0d0d0d;"></div>
+          </div>
+        </div>
+        <div>
+          <span class="lbl">Color 2</span>
+          <div class="hex-row">
+            <input type="color" id="bg-grad2-pick" value="#1e2a3a" oninput="syncBgGrad(2,this.value)">
+            <input type="text" id="bg-grad2-hex" value="#1e2a3a" maxlength="7" oninput="syncBgGradTxt(2,this.value)">
+            <div class="hex-swatch" id="bg-grad2-swatch" style="background:#1e2a3a;"></div>
+          </div>
+        </div>
+      </div>
+      <span class="lbl">Direction</span>
+      <div class="grad-dir-grid">
+        <button class="grad-dir-btn active" onclick="setBgGradDir(this,'to bottom')">↓ Down</button>
+        <button class="grad-dir-btn" onclick="setBgGradDir(this,'to right')">→ Right</button>
+        <button class="grad-dir-btn" onclick="setBgGradDir(this,'135deg')">↘ Diag</button>
+        <button class="grad-dir-btn" onclick="setBgGradDir(this,'to top')">↑ Up</button>
+      </div>
+    </div>
+
+    <!-- IMAGE -->
+    <div class="bg-panel" id="bg-panel-image">
+      <span class="lbl">Upload Background Image</span>
+      <input type="file" id="bg-image-file" accept="image/*" onchange="loadBgImage(this)">
+      <div class="g2" style="margin-top:8px;align-items:end;">
+        <div class="col">
+          <span class="lbl">Width — <span id="sv-bg-w">100</span>%</span>
+          <div class="size-row"><input type="range" min="10" max="200" value="100" id="size-bg-w" oninput="onBgImgW(this.value)"></div>
+        </div>
+        <div class="col">
+          <span class="lbl">Height — <span id="sv-bg-h">100</span>%</span>
+          <div class="size-row"><input type="range" min="10" max="200" value="100" id="size-bg-h" oninput="onBgImgH(this.value)"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;margin-bottom:6px;">
+        <input type="checkbox" id="bg-lock-ar" checked style="width:auto;margin:0;accent-color:#0085CA;cursor:pointer;">
+        <label for="bg-lock-ar" style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#666;cursor:pointer;margin:0;">Lock aspect ratio</label>
+      </div>
+      <div class="g2">
+        <div class="col">
+          <span class="lbl">X — <span id="sv-bg-x">50</span>%</span>
+          <div class="size-row"><input type="range" min="0" max="100" value="50" id="pos-bg-x" oninput="document.getElementById('sv-bg-x').textContent=this.value;applyBgToLayer()"></div>
+        </div>
+        <div class="col">
+          <span class="lbl">Y — <span id="sv-bg-y">50</span>%</span>
+          <div class="size-row"><input type="range" min="0" max="100" value="50" id="pos-bg-y" oninput="document.getElementById('sv-bg-y').textContent=this.value;applyBgToLayer()"></div>
+        </div>
+      </div>
+      <div class="bg-img-preview" id="bg-img-preview">No image uploaded</div>
+    </div>
+  </div>
+
+  <button class="update-btn" onclick="updateGraphic()">▶ Update Graphic</button>
+  <button class="download-btn" id="download-btn" onclick="downloadGraphic()">⬇ Download WebP (1920×1080)</button>
+</div>
+
+<!-- GRAPHIC PREVIEW -->
+<div class="graphic-wrapper">
+  <div class="graphic-scaler">
+    <div id="main-graphic">
+      <div id="bg-dark"></div>
+      <div id="bg-overlay"></div>
+
+      <!-- photo pane -->
+      <div id="photo-pane">
+        <div id="photo-border-frame">
+          <div id="photo-bg">
+            <img id="photo-img" src="" alt="" style="display:none;">
+          </div>
+        </div>
+      </div>
+
+      <!-- logo bar -->
+      <div id="logo-bar">
+        <div id="logo-bar-content">
+          <div class="lb-nfl" id="el-nfl">NFL</div>
+          <div class="lb-spotlight" id="el-spotlight">SPOTLIGHT</div>
+          <div class="lb-sub" id="el-sub">with Ari Meirov &nbsp;·&nbsp; 33rdTeam</div>
+        </div>
+      </div>
+
+      <!-- list pane -->
+      <div id="list-pane">
+        <div id="graphic-title"
+          style="font-family:'Barlow Condensed',sans-serif;font-size:96px;font-weight:900;color:#fff;">
+          2017 NFL DRAFT
+        </div>
+        <div id="rows-container"></div>
+      </div>
+
+      <div id="bottom-bar"></div>
+    </div>
+  </div>
+</div>
+
+<div style="font-size:11px;color:#444;text-align:center;">Preview at 50% scale · Download exports at full 1920×1080px</div>
+
+<script>
+// ── initial row data ──
+const defaultRows = [
+  { text:'157. OT WILL HOLDEN',       highlighted:false, visible:true, logoUrl:null },
+  { text:'158. CB NATE HAIRSTON',      highlighted:false, visible:true, logoUrl:null },
+  { text:'159. G/T JERMAINE ELUEMUNOR',highlighted:true,  visible:true, logoUrl:null },
+  { text:'160. OT RODERICK JOHNSON',   highlighted:false, visible:true, logoUrl:null },
+  { text:'161. LB ANTHONY WALKER',     highlighted:false, visible:true, logoUrl:null },
+  { text:'162. RB JEREMY MCNICHOLS',   highlighted:false, visible:true, logoUrl:null },
+];
+let rows = JSON.parse(JSON.stringify(defaultRows));
+
+const titleState = { bold:true, italic:false, align:'left' };
+let highlightColor = '#e8a000';
+let rowDefaultColor = '#ffffff';
+const photoState = { url:null, natW:1, natH:1, scale:100, x:50, y:50 };
+const borderState = { width:0, radius:16, color:'#ffffff' };
+const bgState = {
+  type:'solid', solidColor:'#111111',
+  gradColor1:'#0d0d0d', gradColor2:'#1e2a3a', gradDir:'to bottom',
+  imgUrl:null, imgNatW:1, imgNatH:1, imgW:100, imgH:100, imgX:50, imgY:50,
+};
+
+// ── render rows editor ──
+function renderRowsEditor() {
+  const container = document.getElementById('rows-editor');
+  container.innerHTML = '';
+  rows.forEach((row, i) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:7px;';
+    wrap.innerHTML = `
+      <div class="row-logo-preview" title="Click to upload logo" onclick="triggerLogoUpload(${i})">
+        ${row.logoUrl ? `<img src="${row.logoUrl}">` : '<span>LOGO</span>'}
+        <input type="file" id="logo-file-${i}" accept="image/*" style="display:none;" onchange="loadRowLogo(${i},this)">
+      </div>
+      <input type="text" id="row-text-${i}" value="${row.text.replace(/"/g,'&quot;')}"
+        style="flex:1;margin-bottom:0;" oninput="rows[${i}].text=this.value;renderGraphicRows()">
+      <button class="highlight-toggle ${row.highlighted?'on':''}" id="hl-btn-${i}"
+        onclick="toggleHighlight(${i})">HL</button>
+      <button class="vis-toggle ${row.visible?'':'hidden'}" id="vis-btn-${i}"
+        onclick="toggleVis(${i})">${row.visible?'👁':'🚫'}</button>
+      <button class="tog" style="font-size:10px;padding:3px 8px;color:#888;"
+        onclick="removeRow(${i})">✕</button>
+    `;
+    container.appendChild(wrap);
+  });
+}
+
+function triggerLogoUpload(i) {
+  document.getElementById('logo-file-' + i).click();
+}
+
+function loadRowLogo(i, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  rows[i].logoUrl = url;
+  renderRowsEditor();
+  renderGraphicRows();
+}
+
+function toggleHighlight(i) {
+  rows[i].highlighted = !rows[i].highlighted;
+  document.getElementById('hl-btn-' + i).classList.toggle('on', rows[i].highlighted);
+  renderGraphicRows();
+}
+function toggleVis(i) {
+  rows[i].visible = !rows[i].visible;
+  renderGraphicRows();
+  renderRowsEditor();
+}
+function removeRow(i) {
+  rows.splice(i, 1);
+  renderRowsEditor();
+  renderGraphicRows();
+}
+function addRow() {
+  rows.push({ text:'New Row', highlighted:false, visible:true, logoUrl:null });
+  renderRowsEditor();
+  renderGraphicRows();
+}
+
+// ── render graphic rows ──
+function renderGraphicRows() {
+  const container = document.getElementById('rows-container');
+  const font = document.getElementById('font-rows').value;
+  const size = document.getElementById('size-rows').value + 'px';
+  const logoSz = parseInt(document.getElementById('size-logo-icons').value);
+  container.innerHTML = '';
+  rows.forEach(row => {
+    if (!row.visible) return;
+    const div = document.createElement('div');
+    div.className = 'list-row';
+    div.innerHTML = `
+      <div class="row-icon" style="width:${logoSz}px;height:${logoSz}px;flex-shrink:0;">
+        ${row.logoUrl
+          ? `<img src="${row.logoUrl}" style="max-width:${logoSz}px;max-height:${logoSz}px;object-fit:contain;">`
+          : `<div class="row-icon-placeholder" style="width:${Math.round(logoSz*0.85)}px;height:${Math.round(logoSz*0.85)}px;">#</div>`}
+      </div>
+      <div class="row-text ${row.highlighted?'highlighted':''}"
+        style="font-family:${font};font-size:${size};color:${row.highlighted ? highlightColor : rowDefaultColor};">
+        ${row.text}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+  requestAnimationFrame(alignPhotoPaneToContent);
+}
+
+// ── title style ──
+function applyTitleStyle() {
+  const el = document.getElementById('graphic-title');
+  el.style.fontFamily  = document.getElementById('font-title').value;
+  el.style.fontSize    = document.getElementById('size-title').value + 'px';
+  el.style.fontWeight  = titleState.bold   ? '900' : '400';
+  el.style.fontStyle   = titleState.italic ? 'italic' : 'normal';
+  el.style.textAlign   = titleState.align;
+  requestAnimationFrame(alignPhotoPaneToContent);
+}
+function toggleTitle(prop) {
+  titleState[prop] = !titleState[prop];
+  document.getElementById('tog-' + prop[0] + '-title').classList.toggle('active', titleState[prop]);
+  applyTitleStyle();
+}
+function setTitleAlign(align) {
+  titleState.align = align;
+  document.getElementById('align-left-btn').classList.toggle('active', align === 'left');
+  document.getElementById('align-center-btn').classList.toggle('active', align === 'center');
+  applyTitleStyle();
+}
+function isValidHex(h) { return /^#[0-9A-Fa-f]{6}$/.test(h); }
+function syncTitleColor(hex) {
+  document.getElementById('color-title-hex').value = hex;
+  document.getElementById('swatch-title').style.background = hex;
+  document.getElementById('graphic-title').style.color = hex;
+}
+function syncTitleColorTxt(val) {
+  if (!val.startsWith('#')) val = '#' + val;
+  document.getElementById('color-title-hex').value = val;
+  if (isValidHex(val)) { document.getElementById('color-title-pick').value = val; syncTitleColor(val); }
+}
+
+// ── row font/size/color ──
+function applyRowFont() { renderGraphicRows(); }
+function applyRowSize() { renderGraphicRows(); }
+function syncHighlightColor(hex) {
+  highlightColor = hex;
+  document.getElementById('highlight-color-hex').value = hex;
+  document.getElementById('swatch-highlight').style.background = hex;
+  renderGraphicRows();
+}
+function syncHighlightColorTxt(val) {
+  if (!val.startsWith('#')) val = '#' + val;
+  document.getElementById('highlight-color-hex').value = val;
+  if (isValidHex(val)) { highlightColor = val; document.getElementById('highlight-color-pick').value = val; document.getElementById('swatch-highlight').style.background = val; renderGraphicRows(); }
+}
+function syncRowColor(hex) {
+  rowDefaultColor = hex;
+  document.getElementById('row-color-hex').value = hex;
+  document.getElementById('swatch-row').style.background = hex;
+  renderGraphicRows();
+}
+function syncRowColorTxt(val) {
+  if (!val.startsWith('#')) val = '#' + val;
+  document.getElementById('row-color-hex').value = val;
+  if (isValidHex(val)) { rowDefaultColor = val; document.getElementById('row-color-pick').value = val; document.getElementById('swatch-row').style.background = val; renderGraphicRows(); }
+}
+
+// ── photo ──
+function loadPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    photoState.url = e.target.result;
+    const img = new Image();
+    img.onload = () => {
+      photoState.natW = img.naturalWidth;
+      photoState.natH = img.naturalHeight;
+      photoState.scale = 100; photoState.x = 50; photoState.y = 50;
+      document.getElementById('size-photo-scale').value = 100;
+      document.getElementById('sv-photo-scale').textContent = 100;
+      document.getElementById('pos-photo-x').value = 50;
+      document.getElementById('sv-photo-x').textContent = 50;
+      document.getElementById('pos-photo-y').value = 50;
+      document.getElementById('sv-photo-y').textContent = 50;
+      updatePhotoStyle();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── align photo pane top/bottom to list content bounds ──
+function alignPhotoPaneToContent() {
+  const title    = document.getElementById('graphic-title');
+  const rowsCont = document.getElementById('rows-container');
+  const graphic  = document.getElementById('main-graphic');
+  const pane     = document.getElementById('photo-pane');
+  if (!title || !graphic || !pane) return;
+
+  const gRect = graphic.getBoundingClientRect();
+  const tRect = title.getBoundingClientRect();
+  const topPx = tRect.top - gRect.top;
+
+  const lastRow = rowsCont ? rowsCont.querySelector('.list-row:last-child') : null;
+  let bottomPx;
+  if (lastRow) {
+    const lRect = lastRow.getBoundingClientRect();
+    bottomPx = gRect.bottom - lRect.bottom;
+  } else {
+    bottomPx = graphic.offsetHeight - (tRect.bottom - gRect.top);
+  }
+
+  pane.style.top    = Math.max(0, Math.round(topPx))    + 'px';
+  pane.style.bottom = Math.max(0, Math.round(bottomPx)) + 'px';
+
+  // Re-apply photo now pane dimensions changed
+  if (photoState.url) updatePhotoStyle();
+}
+
+function updatePhotoStyle() {
+  if (!photoState.url) return;
+  const pane = document.getElementById('photo-pane');
+  const img  = document.getElementById('photo-img');
+  const pW   = pane.offsetWidth  || 700;
+  const pH   = pane.offsetHeight || 700;
+
+  const scale  = photoState.scale / 100;
+  const natAR  = photoState.natW / photoState.natH;
+  const paneAR = pW / pH;
+
+  // Cover: image fills pane at scale=1, zooms in as scale grows
+  let baseW, baseH;
+  if (natAR > paneAR) {
+    // image wider than pane relative to height — constrain by height
+    baseH = pH; baseW = pH * natAR;
+  } else {
+    // image taller than pane relative to width — constrain by width
+    baseW = pW; baseH = pW / natAR;
+  }
+  const w = baseW * scale;
+  const h = baseH * scale;
+
+  // Pan: overflow is how much bigger the image is than the pane in each axis.
+  // position 0% → offset = 0 (image left/top flush with pane edge)
+  // position 50% → offset = -overflow/2 (centered)
+  // position 100% → offset = -overflow (image right/bottom flush with pane edge)
+  const overflowX = w - pW;   // always >= 0 since cover guarantees w >= pW
+  const overflowY = h - pH;   // always >= 0 since cover guarantees h >= pH
+
+  const left = -(overflowX * (photoState.x / 100));
+  const top  = -(overflowY * (photoState.y / 100));
+
+  img.style.display   = 'block';
+  img.src             = photoState.url;
+  img.style.width     = w + 'px';
+  img.style.height    = h + 'px';
+  img.style.position  = 'absolute';
+  img.style.left      = left + 'px';
+  img.style.top       = top  + 'px';
+  img.style.objectFit = 'fill';
+}
+
+function onPhotoScale(val) {
+  photoState.scale = parseInt(val);
+  document.getElementById('sv-photo-scale').textContent = val;
+  updatePhotoStyle();
+}
+
+// ── photo border ──
+function applyPhotoBorder() {
+  const w = parseInt(document.getElementById('size-border-w').value);
+  const r = parseInt(document.getElementById('size-border-r').value);
+  borderState.width  = w;
+  borderState.radius = r;
+  const frame = document.getElementById('photo-border-frame');
+  const bg    = document.getElementById('photo-bg');
+  if (w > 0) {
+    frame.style.border       = `${w}px solid ${borderState.color}`;
+    frame.style.borderRadius = `${r}px`;
+    bg.style.borderRadius    = `${Math.max(0, r - w)}px`;
+  } else {
+    frame.style.border       = 'none';
+    frame.style.borderRadius = `${r}px`;
+    bg.style.borderRadius    = `${r}px`;
+  }
+}
+function syncBorderColor(hex) {
+  borderState.color = hex;
+  document.getElementById('border-color-hex').value = hex;
+  document.getElementById('swatch-border').style.background = hex;
+  applyPhotoBorder();
+}
+function syncBorderColorTxt(val) {
+  if (!val.startsWith('#')) val = '#' + val;
+  document.getElementById('border-color-hex').value = val;
+  if (isValidHex(val)) { borderState.color = val; document.getElementById('border-color-pick').value = val; document.getElementById('swatch-border').style.background = val; applyPhotoBorder(); }
+}
+
+// ── background ──
+function switchBgTab(type) {
+  bgState.type = type;
+  document.querySelectorAll('.bg-tab').forEach(t => t.classList.toggle('active', t.dataset.panel === type));
+  document.querySelectorAll('.bg-panel').forEach(p => p.classList.toggle('active', p.id === 'bg-panel-' + type));
+  applyBgToLayer();
+}
+function applyBgToLayer() {
+  const layer = document.getElementById('bg-dark');
+  if (bgState.type === 'solid') {
+    layer.style.backgroundImage = 'none';
+    layer.style.backgroundColor = bgState.solidColor;
+  } else if (bgState.type === 'gradient') {
+    layer.style.backgroundColor = '';
+    layer.style.backgroundImage = `linear-gradient(${bgState.gradDir},${bgState.gradColor1},${bgState.gradColor2})`;
+    layer.style.backgroundSize = ''; layer.style.backgroundPosition = '';
+  } else if (bgState.type === 'image' && bgState.imgUrl) {
+    layer.style.backgroundColor = '#111';
+    layer.style.backgroundImage = `url(${bgState.imgUrl})`;
+    layer.style.backgroundSize  = `${bgState.imgW}% ${bgState.imgH}%`;
+    layer.style.backgroundPosition = `${bgState.imgX}% ${bgState.imgY}%`;
+    layer.style.backgroundRepeat = 'no-repeat';
+  }
+}
+function syncBgSolid(hex) {
+  bgState.solidColor = hex;
+  document.getElementById('bg-solid-hex').value = hex;
+  document.getElementById('bg-solid-swatch').style.background = hex;
+  applyBgToLayer();
+}
+function syncBgSolidTxt(val) {
+  if (!val.startsWith('#')) val = '#' + val;
+  document.getElementById('bg-solid-hex').value = val;
+  if (isValidHex(val)) { bgState.solidColor = val; document.getElementById('bg-solid-pick').value = val; document.getElementById('bg-solid-swatch').style.background = val; applyBgToLayer(); }
+}
+function syncBgGrad(num, hex) {
+  if (num===1) { bgState.gradColor1=hex; document.getElementById('bg-grad1-hex').value=hex; document.getElementById('bg-grad1-swatch').style.background=hex; }
+  else         { bgState.gradColor2=hex; document.getElementById('bg-grad2-hex').value=hex; document.getElementById('bg-grad2-swatch').style.background=hex; }
+  applyBgToLayer();
+}
+function syncBgGradTxt(num, val) {
+  if (!val.startsWith('#')) val='#'+val;
+  const hexId='bg-grad'+num+'-hex'; document.getElementById(hexId).value=val;
+  if (isValidHex(val)) { if(num===1)bgState.gradColor1=val;else bgState.gradColor2=val; document.getElementById('bg-grad'+num+'-pick').value=val; document.getElementById('bg-grad'+num+'-swatch').style.background=val; applyBgToLayer(); }
+}
+function setBgGradDir(btn, dir) {
+  bgState.gradDir = dir;
+  document.querySelectorAll('.grad-dir-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyBgToLayer();
+}
+function loadBgImage(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    bgState.imgUrl = e.target.result;
+    const img = new Image();
+    img.onload = () => { bgState.imgNatW=img.naturalWidth; bgState.imgNatH=img.naturalHeight; bgState.imgW=100; bgState.imgH=100; switchBgTab('image'); applyBgToLayer(); };
+    img.src = e.target.result;
+    document.getElementById('bg-img-preview').innerHTML = `<img src="${e.target.result}" alt="bg preview">`;
+  };
+  reader.readAsDataURL(file);
+}
+function onBgImgW(val) {
+  const w=parseInt(val); document.getElementById('sv-bg-w').textContent=w;
+  if (document.getElementById('bg-lock-ar').checked && bgState.imgNatW>0) {
+    const layer=document.getElementById('bg-dark'); const lH=layer.offsetHeight||1080;
+    const ratio=(bgState.imgNatH/bgState.imgNatW)*(layer.offsetWidth/lH);
+    const h=Math.min(200,Math.max(10,Math.round(w*ratio)));
+    bgState.imgW=w; bgState.imgH=h;
+    document.getElementById('size-bg-h').value=h; document.getElementById('sv-bg-h').textContent=h;
+  } else { bgState.imgW=w; }
+  applyBgToLayer();
+}
+function onBgImgH(val) {
+  const h=parseInt(val); document.getElementById('sv-bg-h').textContent=h;
+  if (document.getElementById('bg-lock-ar').checked && bgState.imgNatH>0) {
+    const layer=document.getElementById('bg-dark'); const lH=layer.offsetHeight||1080;
+    const ratio=(bgState.imgNatW/bgState.imgNatH)*(lH/layer.offsetWidth);
+    const w=Math.min(200,Math.max(10,Math.round(h*ratio)));
+    bgState.imgH=h; bgState.imgW=w;
+    document.getElementById('size-bg-w').value=w; document.getElementById('sv-bg-w').textContent=w;
+  } else { bgState.imgH=h; }
+  applyBgToLayer();
+}
+
+// ── update text from inputs ──
+function updateGraphic() {
+  document.getElementById('el-nfl').textContent       = document.getElementById('inp-nfl').value;
+  document.getElementById('el-spotlight').textContent = document.getElementById('inp-spotlight').value;
+  document.getElementById('el-sub').innerHTML         = document.getElementById('inp-sub').value;
+  document.getElementById('graphic-title').textContent= document.getElementById('inp-title').value;
+  renderGraphicRows();
+}
+
+// ── download ──
+async function downloadGraphic() {
+  const btn = document.getElementById('download-btn');
+  btn.disabled = true; btn.textContent = '⏳ Rendering…';
+
+  const graphic = document.getElementById('main-graphic');
+  const prevTransform = graphic.style.transform;
+  graphic.style.transform = 'none';
+  graphic.style.position  = 'absolute';
+  graphic.style.left      = '-9999px';
+  graphic.style.top       = '0';
+  document.body.appendChild(graphic);
+
+  try {
+    const canvas = await html2canvas(graphic, {
+      scale: 1, useCORS: true, allowTaint: true,
+      backgroundColor: bgState.solidColor || '#111111', logging: false,
+      width: 1920, height: 1080,
+    });
+
+    document.querySelector('.graphic-scaler').appendChild(graphic);
+    graphic.style.transform = prevTransform;
+    graphic.style.position  = '';
+    graphic.style.left      = '';
+    graphic.style.top       = '';
+    scaleGraphicToFit();
+
+    canvas.toBlob(blob => {
+      const kb = Math.round(blob.size / 1024);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'draft_graphic.webp'; a.click();
+      URL.revokeObjectURL(url);
+      btn.disabled = false;
+      btn.innerHTML = `⬇ Download WebP (1920×1080) — last export: ${kb} KB`;
+    }, 'image/webp', 0.65);
+
+  } catch(err) {
+    try {
+      document.querySelector('.graphic-scaler').appendChild(graphic);
+      graphic.style.transform = prevTransform;
+      graphic.style.position = ''; graphic.style.left = ''; graphic.style.top = '';
+      scaleGraphicToFit();
+    } catch(e) {}
+    alert('Export failed: ' + err.message);
+    btn.disabled = false; btn.innerHTML = '⬇ Download WebP (1920×1080)';
+  }
+}
+
+// ── Dynamic preview scale — always show the full 1920×1080 graphic ──
+function scaleGraphicToFit() {
+  const wrapper = document.querySelector('.graphic-wrapper');
+  const availW  = wrapper.clientWidth || 960;
+  const scale   = availW / 1920;
+  const scaledH = Math.round(1080 * scale);
+  document.getElementById('main-graphic').style.transform = `scale(${scale})`;
+  const scaler = document.querySelector('.graphic-scaler');
+  scaler.style.width  = availW + 'px';
+  scaler.style.height = scaledH + 'px';
+  requestAnimationFrame(alignPhotoPaneToContent);
+}
+window.addEventListener('resize', scaleGraphicToFit);
+scaleGraphicToFit();
+
+// ── ResizeObserver to keep bg layer full height ──
+const _ro = new ResizeObserver(() => {
+  const g = document.getElementById('main-graphic');
+  ['bg-dark','bg-overlay'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.height = g.scrollHeight + 'px';
+  });
+});
+_ro.observe(document.getElementById('main-graphic'));
+
+// ── INIT ──
+renderRowsEditor();
+renderGraphicRows();
+// align runs via rAF inside renderGraphicRows; also run once more after full paint
+setTimeout(alignPhotoPaneToContent, 100);
+</script>
+</body>
+</html>
